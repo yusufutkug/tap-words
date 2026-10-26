@@ -1,0 +1,35 @@
+---
+description: Tap Words öneri ve karar formatı; referans ve ölçüm zorunluluğu
+alwaysApply: true
+---
+
+# Öneri ve Karar Formatı
+
+`docs/` altına yazılan ve bir değişiklik/feature/parametre öneren her içerik şu başlıkları içerir, bu sırayla:
+
+```markdown
+## Öneri
+Tek cümle: ne değişiyor.
+
+## Gerekçe
+Hangi problemi çözüyor; prototipten veya docs/ içinden hangi gözleme dayanıyor.
+
+## Referans
+Hangi oyun bunu nasıl yapıyor → `docs/references/<oyun>.md#bölüm`.
+Referans yoksa: "Referans yok — /market-research'e soru düşüldü" yaz ve docs/open-questions.md'ye ekle.
+
+## Trade-off
+Ne kaybediyoruz; hangi pillar ile gerilimde (docs/game/pillars.md).
+
+## Gerekli görüşler
+Hangi agent'ın bakması gerekir ve neden. Yoksa "Yok".
+
+## Ölçüm
+Hangi metrik, hangi yönde, ne kadar değişirse başarılı sayılır.
+```
+
+Kurallar:
+- Birden fazla seçenek sunuluyorsa her seçenek bu formatı ayrı ayrı doldurur; sonunda "Önerilen" belirtilir.
+- Agent karar vermez, "Önerilen" der. Karar ana sohbette verilir ve `docs/decisions/ADR-NNNN-<konu>.md` olarak yazılır (şablon: `docs/decisions/README.md`).
+- `docs/decisions/` içinde kapanmış bir konu tekrar önerilmez; ADR'ye referans verilip "yeniden açma gerekçesi" yazılır.
+- Sayı ver: "daha zor" değil, "hedef hücre oranı %55 → %40".

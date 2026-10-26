@@ -1,0 +1,8 @@
+.DS_Store
+# third-party APK binaries and extracted assets: analyze locally, never commit
+docs/references/raw/*/apk/
+docs/references/raw/*/apk-extract/
+docs/references/raw/*/sdcard/
+docs/references/raw/*/extracted/levelpacks/
+docs/references/raw/*/extracted/levelconfigs/
+docs/references/raw/*/extracted/config/
