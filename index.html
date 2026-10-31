@@ -4,109 +4,127 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
-<meta name="theme-color" content="#f3f4f7">
+<meta name="theme-color" content="#fbf2e4">
 <title>Tap Words</title>
 <meta name="claude:viewport-fit-sides" content="cover">
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@500;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Nunito:wght@700;800;900&display=swap">
 <style>
-/* Layout: one-screen app. Header (title, lives, progress) + wrapping word chips; the board viewport fills the rest and is panned/zoomed inside it. Board itself is a fixed white field with black letters in both themes. */
+/* Layout (Amaze GO! style, docs/ux/figma ui elements): compact HUD (back · level+lives · coins) → theme bar → word chips → board → hint/restart → banner placeholder. Board is panned/zoomed inside #viewport. */
 :root{
-  --bg:#f3f4f7; --panel:#ffffff; --fg:#1c2130; --muted:#6b7284; --line:#d9dce4;
-  --accent:#2457d6; --danger:#d6342e;
-  --board:#ffffff; --board-fg:#000000; --found-s:62%; --found-l:80%; --found-fg-l:26%; --wrong:#f3b4b0;
-  --font-ui:"IBM Plex Sans",system-ui,sans-serif; --font-grid:"IBM Plex Mono",ui-monospace,Menlo,monospace;
+  --bg:#fbf2e4; --card:#fff8ec; --brown:#a4705b; --brown-d:#8a5b48; --brown-x:#5c4035; --beige:#e9d6c0; --beige-d:#d6bea2;
+  --fg:#6b4536; --muted:#b39785; --white:#fff; --heart:#ff5c6c; --heart-d:#c9414f; --heart-off:#4a3630; --coin:#f5b63d; --coin-d:#d4921a; --plus:#2fb34a;
+  --wrong:#f0b2a6; --wrong-fg:#a63a2c;
+  --banner-h:50px;
+  --font:"Nunito",system-ui,sans-serif;
 }
-@media (prefers-color-scheme: dark){ :root:not([data-theme="light"]){
-  --bg:#14171f; --panel:#1d2130; --fg:#e8eaf0; --muted:#8f97ab; --line:#2d3347;
-  --accent:#6f95f5; --danger:#f0655f; color-scheme:dark } }
-:root[data-theme="dark"]{
-  --bg:#14171f; --panel:#1d2130; --fg:#e8eaf0; --muted:#8f97ab; --line:#2d3347;
-  --accent:#6f95f5; --danger:#f0655f; color-scheme:dark }
-
 html,body{height:100%}
-body{margin:0;background:var(--bg);color:var(--fg);font-family:var(--font-ui);display:flex;flex-direction:column;overflow:hidden;
-  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:10px 12px;gap:10px;box-sizing:border-box}
-header{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
-h1{font-size:1.05rem;font-weight:600;margin:0;letter-spacing:.01em}
-.stats{display:flex;align-items:center;gap:14px;font-variant-numeric:tabular-nums;font-size:.95rem}
-.lives{display:flex;gap:4px}
-.heart{width:18px;height:18px;fill:var(--danger);transition:transform .2s,opacity .2s}
-.heart.lost{fill:var(--line);opacity:.8;transform:scale(.85)}
-.progress{color:var(--muted)}
-.progress b{color:var(--fg);font-weight:600}
-button{font:inherit;font-weight:500;font-size:.9rem;padding:6px 12px;border-radius:8px;border:1px solid var(--line);background:var(--panel);color:var(--fg);cursor:pointer}
-button:hover{border-color:var(--accent)}
-button:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
-.words{display:flex;flex-wrap:wrap;gap:6px}
-.chip{display:inline-flex;align-items:center;gap:7px;padding:4px 9px 4px 7px;border-radius:999px;background:var(--panel);border:1px solid var(--line);font-size:.85rem;font-variant-numeric:tabular-nums}
-.chip .dot{width:10px;height:10px;border-radius:50%;background:hsl(var(--h) var(--found-s) calc(var(--found-l) - 28%))}
-.chip .cnt{color:var(--muted)}
-.chip.done{text-decoration:line-through;color:var(--muted)}
-.chip.done .dot{opacity:.5}
-.lvlname{color:var(--muted);font-weight:500;margin-left:6px}
-.levels{display:flex;gap:6px;flex-wrap:wrap}
-.levels button{padding:4px 10px;font-size:.82rem;border-radius:999px}
-.levels button.on{background:var(--accent);color:#fff;border-color:transparent}
-.hint{font-size:.78rem;color:var(--muted);margin:0}
-.tools{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
-.tools .sp{flex:1}
-.toggle{display:inline-flex;align-items:center;gap:8px;font-size:.85rem;cursor:pointer;user-select:none}
-.toggle input{position:absolute;opacity:0;width:0;height:0}
-.toggle .tr{width:36px;height:20px;border-radius:999px;background:var(--line);position:relative;transition:background .2s}
-.toggle .tr::after{content:"";position:absolute;top:2px;left:2px;width:16px;height:16px;border-radius:50%;background:#fff;box-shadow:0 1px 2px rgba(0,0,0,.25);transition:transform .2s}
-.toggle input:checked+.tr{background:var(--accent)}
-.toggle input:checked+.tr::after{transform:translateX(16px)}
-.toggle input:focus-visible+.tr{outline:2px solid var(--accent);outline-offset:2px}
-#hintBtn:disabled{opacity:.5;cursor:default}
-#grid.collect .strip{display:none}
-.cell.found.gone{color:transparent}
-.cell.found.gone::after{content:"";position:absolute;left:50%;top:50%;width:.3em;height:.3em;margin:-.15em 0 0 -.15em;border-radius:50%;background:hsl(var(--h) var(--found-s) calc(var(--found-l) - 36%))}
-.cell.hintpulse{animation:hintp 1.2s ease-in-out 2;color:var(--accent)}
-.cell.hintpulse::before{content:"";position:absolute;inset:-2px;border-radius:50%;border:2px solid var(--accent);animation:ring 1.2s ease-out 2}
-@keyframes hintp{50%{transform:scale(1.35)}}
-@keyframes ring{0%{transform:scale(.6);opacity:1}100%{transform:scale(1.8);opacity:0}}
-#viewport{flex:1;min-height:0;position:relative;overflow:hidden;border-radius:12px;border:1px solid var(--line);background:var(--board);touch-action:none;user-select:none;-webkit-user-select:none;cursor:grab}
-#viewport.dragging{cursor:grabbing}
-#grid{position:absolute;left:0;top:0;transform-origin:0 0;display:grid;will-change:transform;background:var(--board);box-sizing:content-box}
-.cell{display:flex;align-items:center;justify-content:center;font-family:var(--font-grid);font-weight:600;color:var(--board-fg);box-sizing:border-box;line-height:1;border-radius:3px}
-.cell{position:relative;z-index:1}
-.cell.found{color:hsl(var(--h) 45% var(--found-fg-l))}
-.strip{position:absolute;border-radius:999px;background:hsl(var(--h) var(--found-s) var(--found-l));transform-origin:0 50%;z-index:0;animation:pop .28s ease-out}
-.fly{position:fixed;z-index:50;pointer-events:none;font-family:var(--font-grid);font-weight:600;display:flex;align-items:center;justify-content:center;border-radius:6px;background:hsl(var(--h) var(--found-s) var(--found-l));color:hsl(var(--h) 45% var(--found-fg-l))}
+body{margin:0;background:var(--bg);color:var(--fg);font-family:var(--font);font-weight:700;display:flex;flex-direction:column;overflow:hidden;box-sizing:border-box;
+  padding-top:max(6px,env(safe-area-inset-top,0px));gap:8px}
+.px{padding-left:max(12px,env(safe-area-inset-left,0px));padding-right:max(12px,env(safe-area-inset-right,0px))}
+button{font:inherit;font-weight:800;border:0;background:none;color:inherit;cursor:pointer;padding:0;-webkit-tap-highlight-color:transparent}
+button:focus-visible{outline:2px solid var(--brown-x);outline-offset:2px}
+.round{width:40px;height:40px;border-radius:50%;background:var(--brown);color:var(--white);display:inline-flex;align-items:center;justify-content:center;position:relative;box-shadow:0 2px 0 var(--brown-d);transition:transform .1s}
+.round:active{transform:translateY(1px);box-shadow:0 1px 0 var(--brown-d)}
+.round svg{width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:2.4;stroke-linecap:round;stroke-linejoin:round}
+.round:disabled{opacity:.45;cursor:default}
+.badge{position:absolute;top:-6px;right:-5px;min-width:17px;height:17px;padding:0 4px;border-radius:999px;background:var(--brown);color:var(--white);font-size:.66rem;font-weight:800;display:flex;align-items:center;justify-content:center;box-sizing:border-box;line-height:1}
+.round .badge{background:var(--brown-d);border:2px solid var(--bg)}
+
+/* HUD */
+.hud{display:flex;align-items:center;justify-content:space-between;gap:10px;min-height:44px}
+.hud .center{display:flex;flex-direction:column;align-items:center;gap:2px}
+.hud .lvl{font-size:.95rem;font-weight:800;line-height:1}
+.lives{display:flex;gap:3px}
+.heart{width:22px;height:22px;fill:var(--heart);stroke:var(--heart-d);stroke-width:1.2;transition:transform .2s,fill .2s}
+.heart.lost{fill:none;stroke:var(--heart-off);stroke-width:1.6;transform:scale(.92)}
+.coins{display:flex;align-items:center;height:30px;padding:0 30px 0 12px;border-radius:999px;background:var(--brown-x);color:var(--white);font-size:.95rem;font-weight:800;position:relative;margin-right:8px;font-variant-numeric:tabular-nums}
+.coins .coin{position:absolute;right:-8px;top:-4px;width:36px;height:36px;border-radius:50%;background:radial-gradient(circle at 35% 30%,#ffd56a,var(--coin) 60%,var(--coin-d));box-shadow:inset 0 0 0 3px rgba(255,255,255,.35),0 1px 2px rgba(0,0,0,.25)}
+.coins .coin::after{content:"";position:absolute;inset:9px;border-radius:50%;border:2.5px solid var(--coin-d);opacity:.7}
+.coins .plus{position:absolute;right:-12px;bottom:-5px;width:16px;height:16px;border-radius:50%;background:var(--plus);color:#fff;font-size:.8rem;line-height:16px;text-align:center;border:2px solid var(--bg)}
+
+/* Theme bar */
+.theme{background:var(--brown);color:var(--white);text-align:center;font-size:1.05rem;font-weight:900;letter-spacing:.08em;padding:8px 12px;text-transform:uppercase}
+
+/* Word chips */
+.words{display:flex;flex-wrap:wrap;justify-content:center;gap:10px 8px;padding-top:4px}
+.chip{position:relative;display:inline-flex;align-items:center;padding:4px 12px;border-radius:999px;background:var(--beige);color:var(--fg);font-size:.9rem;font-weight:900;letter-spacing:.02em;line-height:1.2}
+.chip.done{text-decoration:line-through;text-decoration-thickness:2px;color:var(--muted);background:var(--beige-d);opacity:.75}
+.chip.done .badge{display:none}
 .chip.bump{animation:bump .3s ease-out}
 @keyframes bump{40%{transform:scale(1.15)}}
-.cell.wrong{background:var(--wrong);animation:shake .3s}
+
+/* Board */
+#viewport{flex:1;min-height:0;position:relative;margin:0 max(12px,env(safe-area-inset-right,0px)) 0 max(12px,env(safe-area-inset-left,0px));overflow:hidden;border-radius:12px;background:var(--card);box-shadow:0 1px 3px rgba(92,64,53,.12);touch-action:none;user-select:none;-webkit-user-select:none;cursor:grab}
+#viewport.dragging{cursor:grabbing}
+#grid{position:absolute;left:0;top:0;transform-origin:0 0;display:grid;will-change:transform;background:var(--card);box-sizing:content-box}
+.cell{display:flex;align-items:center;justify-content:center;font-weight:800;color:var(--brown-d);box-sizing:border-box;line-height:1;border-radius:3px;position:relative;z-index:1}
+.cell.found{color:var(--white)}
+.strip{position:absolute;border-radius:999px;background:var(--brown);transform-origin:0 50%;z-index:0;animation:pop .28s ease-out}
+#grid.collect .strip{display:none}
+.cell.found.gone{color:transparent}
+.cell.found.gone::after{content:"";position:absolute;left:50%;top:50%;width:.3em;height:.3em;margin:-.15em 0 0 -.15em;border-radius:50%;background:var(--beige-d)}
+.cell.wrong{background:var(--wrong);color:var(--wrong-fg);animation:shake .3s}
+.cell.hintpulse{animation:hintp 1.2s ease-in-out 2;color:var(--brown-x)}
+.cell.hintpulse::before{content:"";position:absolute;inset:-2px;border-radius:50%;border:2px solid var(--brown);animation:ring 1.2s ease-out 2}
+.fly{position:fixed;z-index:50;pointer-events:none;font-family:var(--font);font-weight:800;display:flex;align-items:center;justify-content:center;border-radius:6px;background:var(--brown);color:var(--white)}
+@keyframes hintp{50%{transform:scale(1.35)}}
+@keyframes ring{0%{transform:scale(.6);opacity:1}100%{transform:scale(1.8);opacity:0}}
 @keyframes pop{0%{transform:rotate(var(--a)) translateX(var(--o)) scaleX(.2);opacity:0}100%{transform:rotate(var(--a)) translateX(var(--o)) scaleX(1);opacity:1}}
 @keyframes shake{0%,100%{transform:translateX(0)}25%{transform:translateX(-3px)}75%{transform:translateX(3px)}}
-.zoom{position:absolute;right:10px;bottom:10px;display:flex;flex-direction:column;gap:6px}
-.zoom button{width:36px;height:36px;padding:0;font-size:1.1rem;border-radius:8px;background:#f2f2f2;color:#000;border-color:#cfcfcf}
-.overlay{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;background:rgba(255,255,255,.7);backdrop-filter:blur(3px);border-radius:12px}
-.card{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:22px 26px;text-align:center;max-width:300px;display:flex;flex-direction:column;gap:10px}
-.card h2{margin:0;font-size:1.3rem}
+
+/* Bottom actions + banner */
+.actions{display:flex;justify-content:center;gap:14px;padding:2px 0}
+.banner{height:var(--banner-h);margin:0 max(12px,env(safe-area-inset-right,0px)) max(8px,env(safe-area-inset-bottom,0px)) max(12px,env(safe-area-inset-left,0px));background:var(--brown);border-radius:8px;display:flex;align-items:center;justify-content:center;color:rgba(255,255,255,.35);font-size:.7rem;letter-spacing:.2em;text-transform:uppercase}
+
+/* Overlays */
+.overlay{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;background:rgba(251,242,228,.75);backdrop-filter:blur(3px);border-radius:12px;z-index:5}
+.card{background:var(--white);border-radius:16px;padding:22px 26px;text-align:center;max-width:300px;display:flex;flex-direction:column;gap:12px;box-shadow:0 4px 16px rgba(92,64,53,.18)}
+.card h2{margin:0;font-size:1.3rem;font-weight:900;color:var(--brown-x)}
 .card p{margin:0;color:var(--muted)}
-.card button{background:var(--accent);color:#fff;border-color:transparent;padding:9px 16px;font-size:1rem}
+.card button{background:var(--brown);color:#fff;padding:10px 16px;font-size:1rem;border-radius:12px;box-shadow:0 2px 0 var(--brown-d)}
+.sheet{position:fixed;inset:0;z-index:20;background:rgba(92,64,53,.45);display:flex;align-items:flex-end;justify-content:center}
+.sheet[hidden]{display:none}
+.sheet .panel{background:var(--bg);width:100%;max-width:480px;border-radius:18px 18px 0 0;padding:18px 18px max(18px,env(safe-area-inset-bottom,0px));display:flex;flex-direction:column;gap:14px;box-sizing:border-box}
+.sheet h3{margin:0;font-size:1rem;color:var(--brown-x)}
+.levels{display:flex;gap:8px;flex-wrap:wrap}
+.levels button{padding:8px 14px;font-size:.9rem;border-radius:999px;background:var(--beige);color:var(--fg)}
+.levels button.on{background:var(--brown);color:#fff}
+.toggle{display:inline-flex;align-items:center;gap:10px;font-size:.9rem;cursor:pointer;user-select:none}
+.toggle input{position:absolute;opacity:0;width:0;height:0}
+.toggle .tr{width:40px;height:22px;border-radius:999px;background:var(--beige-d);position:relative;transition:background .2s}
+.toggle .tr::after{content:"";position:absolute;top:2px;left:2px;width:18px;height:18px;border-radius:50%;background:#fff;box-shadow:0 1px 2px rgba(0,0,0,.25);transition:transform .2s}
+.toggle input:checked+.tr{background:var(--brown)}
+.toggle input:checked+.tr::after{transform:translateX(18px)}
+.sheet .close{align-self:center;background:var(--brown);color:#fff;padding:10px 24px;border-radius:12px;box-shadow:0 2px 0 var(--brown-d)}
 @media (prefers-reduced-motion: reduce){ .strip,.cell.wrong,.chip.bump,.cell.hintpulse,.cell.hintpulse::before{animation:none} .fly{display:none} }
 </style>
 
-<header>
-  <h1>Kelime Avı <span id="lvlName" class="lvlname"></span></h1>
-  <div class="stats">
+<header class="hud px">
+  <button id="backBtn" class="round" aria-label="Seviyeler ve ayarlar"><svg viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7"/></svg></button>
+  <div class="center">
+    <div class="lvl">Seviye <span id="lvlNum">1</span></div>
     <div class="lives" id="lives" aria-label="Can"></div>
-    <div class="progress"><b id="found">0</b> / <span id="total">50</span></div>
-    <button id="newGame">Yeni oyun</button>
   </div>
+  <div class="coins" aria-label="Altın"><span id="coins">235</span><span class="coin" aria-hidden="true"></span><span class="plus" aria-hidden="true">+</span></div>
 </header>
-<div class="tools">
-  <div class="levels" id="levels"></div>
-  <span class="sp"></span>
-  <button id="hintBtn">İpucu</button>
-  <label class="toggle" for="collectT"><input type="checkbox" id="collectT"><span class="tr"></span>Harfleri topla</label>
-</div>
-<div class="words" id="words"></div>
-<p class="hint">Kelimenin herhangi bir harfine dokun. Yanlış harf 1 can götürür. Sürükleyerek kaydır, tekerlek veya iki parmakla yakınlaştır.</p>
+<div class="theme" id="theme"></div>
+<div class="words px" id="words"></div>
 <div id="viewport">
   <div id="grid"></div>
-  <div class="zoom"><button id="zin" aria-label="Yakınlaştır">+</button><button id="zout" aria-label="Uzaklaştır">−</button></div>
+</div>
+<div class="actions">
+  <button id="hintBtn" class="round" aria-label="İpucu"><svg viewBox="0 0 24 24"><path d="M9 18h6M10 21h4M12 3a6 6 0 0 0-4 10.5c.7.6 1 1.3 1 2.5h6c0-1.2.3-1.9 1-2.5A6 6 0 0 0 12 3z"/></svg><span class="badge" id="hintCnt">3</span></button>
+  <button id="newGame" class="round" aria-label="Yeniden başla"><svg viewBox="0 0 24 24"><path d="M20 12a8 8 0 1 1-2.6-5.9M20 4v5h-5"/></svg></button>
+</div>
+<div class="banner" aria-label="Banner reklam alanı">banner</div>
+
+<div id="menu" class="sheet" hidden>
+  <div class="panel">
+    <h3>Seviyeler</h3>
+    <div class="levels" id="levels"></div>
+    <label class="toggle" for="collectT"><input type="checkbox" id="collectT"><span class="tr"></span>Bulunan harfler tahtadan gitsin</label>
+    <button class="close" id="menuClose">Kapat</button>
+  </div>
 </div>
 
 <script>
@@ -197,10 +215,10 @@ function generate(){
 
 // ---- state ----
 let G, found, lives, over, hints=0; const MAXH=3;
-let collect=false; try{collect=localStorage.getItem("ka-collect")==="1"}catch(e){}
+let collect=true; try{const v=localStorage.getItem("ka-collect");if(v!==null)collect=v==="1"}catch(e){} // default on: "bulunan harfler tahtadan gider" (docs/uncertainties.md#netleşenler)
 const $=id=>document.getElementById(id);
 const vp=$("viewport"), grid=$("grid");
-let scale=1, tx=0, ty=0, base=20, PAD=48, minScale=1; // base = unscaled cell px, PAD = white margin around the letters
+let scale=1, tx=0, ty=0, base=20, PAD=16, minScale=1; // base = unscaled cell px, PAD = white margin around the letters
 
 function newGame(state,lv){
   if(lv!==undefined)level=lv; if(state&&state.level!==undefined)level=state.level;
@@ -209,16 +227,17 @@ function newGame(state,lv){
   G=state?.G??generate();
   found=state?.found??new Array(G.placements.length).fill(false);
   lives=state?.lives??MAXL; over=false; hints=state?.hints??MAXH;
-  renderWords(); renderLives(); buildGrid(); fit(); updateProgress(); renderHint();
+  renderWords(); renderLives(); buildGrid(); fit(); renderHint();
   vp.querySelector(".overlay")?.remove();
 }
 function renderLevels(){
-  $("lvlName").textContent=`· ${level+1}. seviye: ${LEVELS[level].name}`;
-  $("levels").innerHTML=LEVELS.map((l,i)=>`<button class="${i===level?"on":""}" data-lv="${i}">${i+1}</button>`).join("");
-  $("levels").querySelectorAll("button").forEach(b=>b.onclick=()=>newGame(null,+b.dataset.lv));
+  $("lvlNum").textContent=level+1;
+  $("theme").textContent=LEVELS[level].name.toLocaleUpperCase("tr");
+  $("levels").innerHTML=LEVELS.map((l,i)=>`<button class="${i===level?"on":""}" data-lv="${i}">${i+1} · ${l.name}</button>`).join("");
+  $("levels").querySelectorAll("button").forEach(b=>b.onclick=()=>{closeMenu();newGame(null,+b.dataset.lv)});
 }
 function renderWords(){
-  $("words").innerHTML=WORDS.map((w,i)=>`<span class="chip" id="chip${i}" style="--h:${HUES[i]}"><span class="dot"></span>${w} <span class="cnt">0/${PER}</span></span>`).join("");
+  $("words").innerHTML=WORDS.map((w,i)=>`<span class="chip" id="chip${i}">${w}<span class="badge cnt">${PER}</span></span>`).join("");
 }
 function renderLives(){
   $("lives").innerHTML=Array.from({length:MAXL},(_,i)=>i).map(i=>`<svg class="heart${i<lives?"":" lost"}" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 21s-7.5-4.6-9.6-9.2C.9 8.4 3 4.5 6.8 4.5c2 0 3.6 1.2 5.2 3 1.6-1.8 3.2-3 5.2-3 3.8 0 5.9 3.9 4.4 7.3C19.5 16.4 12 21 12 21z"/></svg>`).join("");
@@ -241,12 +260,8 @@ function buildGrid(){
 function updateChip(wi){
   const n=G.placements.filter((p,i)=>p.word===wi&&found[i]).length;
   const chip=$("chip"+wi);
-  chip.querySelector(".cnt").textContent=`${n}/${PER}`;
+  chip.querySelector(".cnt").textContent=PER-n; // remaining copies, as in the reference chips
   chip.classList.toggle("done",n===PER);
-}
-function updateProgress(){
-  $("found").textContent=found.filter(Boolean).length;
-  $("total").textContent=found.length;
 }
 
 // ---- zoom / pan ----
@@ -269,8 +284,6 @@ function zoomAt(f,cx,cy){
   clamp();apply();
 }
 vp.addEventListener("wheel",e=>{e.preventDefault();zoomAt(Math.exp(-e.deltaY*0.002),e.clientX,e.clientY)},{passive:false});
-$("zin").onclick=()=>{const r=vp.getBoundingClientRect();zoomAt(1.5,r.left+r.width/2,r.top+r.height/2)};
-$("zout").onclick=()=>{const r=vp.getBoundingClientRect();zoomAt(1/1.5,r.left+r.width/2,r.top+r.height/2)};
 window.addEventListener("resize",()=>{const old=scale/minScale;fit();if(old>1){const r=vp.getBoundingClientRect();zoomAt(old,r.left+vp.clientWidth/2,r.top+vp.clientHeight/2)}});
 
 const ptrs=new Map(); let gesture=null;
@@ -330,7 +343,6 @@ function tap(i){
   found[p]=true;
   G.placements[p].cells.forEach(idx=>{const c=grid.children[idx];c.classList.add("found");if(collect)c.classList.add("gone")});
   drawStrip(p);
-  updateProgress();
   flyToChip(p,()=>{updateChip(G.placements[p].word);if(found.every(Boolean))finish(true)});
 }
 function drawStrip(p){
@@ -353,7 +365,7 @@ function flyToChip(p,done){
   pl.cells.forEach((idx,i)=>{
     const c=grid.children[idx], r=c.getBoundingClientRect();
     const f=document.createElement("div"); f.className="fly"; f.textContent=G.letters[idx];
-    f.style.cssText=`--h:${HUES[pl.word]};left:${r.left}px;top:${r.top}px;width:${r.width}px;height:${r.height}px;font-size:${r.height*.7}px`;
+    f.style.cssText=`left:${r.left}px;top:${r.top}px;width:${r.width}px;height:${r.height}px;font-size:${r.height*.7}px`;
     document.body.appendChild(f);
     const dx=tx0-(r.left+r.width/2), dy=ty0-(r.top+r.height/2);
     const anim=f.animate([
@@ -377,8 +389,15 @@ function finish(win){
 }
 $("newGame").onclick=()=>newGame();
 
+// ---- back button → level/settings sheet ----
+const menu=$("menu");
+const closeMenu=()=>{menu.hidden=true};
+$("backBtn").onclick=()=>{menu.hidden=false};
+$("menuClose").onclick=closeMenu;
+menu.addEventListener("click",e=>{if(e.target===menu)closeMenu()});
+
 // ---- hint & collect toggle ----
-function renderHint(){const b=$("hintBtn");b.textContent=`İpucu (${hints})`;b.disabled=hints<=0||over}
+function renderHint(){const b=$("hintBtn");$("hintCnt").textContent=hints;b.disabled=hints<=0||over}
 $("hintBtn").onclick=()=>{
   if(over||hints<=0)return;
   const open=found.map((f,i)=>f?-1:i).filter(i=>i>=0); if(!open.length)return;

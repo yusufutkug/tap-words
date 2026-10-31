@@ -11,11 +11,11 @@ Kaynak: `index.html` (prototip v18). Bu doküman prototipin davranışını tari
 | **Yerleşim** | Bir kelimenin tahtadaki tek bir kopyası. Her kelime `PER` kez yerleştirilir. |
 | **Hedef hücre** | Bir yerleşime ait harf. Dokununca yerleşim açılır. |
 | **Dolgu hücresi** | Hiçbir yerleşime ait olmayan harf. Dokununca can gider. |
-| **Chip** | Üstteki kelime etiketi; `bulunan/PER` sayacı taşır. |
-| **Şerit** | Açılan yerleşimin üzerine çizilen renkli kapsül. |
+| **Chip** | Üstteki kelime etiketi; sağ üst rozetinde **kalan kopya** (`PER − bulunan`) sayısını taşır; hepsi bulununca üstü çizilir. |
+| **Şerit** | Açılan yerleşimin üzerine çizilen kahverengi kapsül (tek renk; harfler beyaza döner). |
 | **Can** | Yanlış dokunuş hakkı. |
 | **İpucu** | Rastgele açılmamış bir yerleşimin ilk harfini gösterir. |
-| **Harfleri topla** | Bulunan harflerin kaybolup noktaya dönüştüğü görsel mod. |
+| **Harfleri topla** | Bulunan harflerin kaybolup noktaya dönüştüğü görsel mod. **Varsayılan açık** (Netleşenler: "bulunan harfler tahtadan gider"); geri okundan açılan ayar sayfasından kapatılabilir. |
 
 ## Parametreler (prototip değerleri)
 
@@ -39,7 +39,7 @@ Hedef sayısı = kelime × PER = 50. Hedef hücre ≈ 50 × ~5 harf ≈ 250–28
 
 1. Oyuncu tahtayı tarar (pan/zoom serbest).
 2. Bir harfe dokunur.
-   - **Hedef hücre, yerleşim açık değil** → yerleşim açılır: harfler renklenir, şerit çizilir (pop animasyonu), harfler chip'e uçar (820 ms), chip sayacı artar ve "bump" yapar. İlerleme `bulunan/50` güncellenir.
+   - **Hedef hücre, yerleşim açık değil** → yerleşim açılır: şerit çizilir (pop animasyonu), harfler chip'e uçar (820 ms), chip rozeti 1 azalır ve "bump" yapar. Varsayılan modda harfler tahtadan silinip noktaya döner. (Toplam ilerleme sayacı HUD'da gösterilmez.)
    - **Hedef hücre, yerleşim zaten açık** → hiçbir şey olmaz (ceza yok).
    - **Dolgu hücresi** → hücre kızarır ve sallanır (350 ms), 1 can gider.
 3. 50/50 → kazanç ekranı ("Sonraki seviye"). Can 0 → kayıp ekranı ("Tekrar oyna").
@@ -51,7 +51,7 @@ Hedef sayısı = kelime × PER = 50. Hedef hücre ≈ 50 × ~5 harf ≈ 250–28
 - Çapraz yerleşimlerde komşu çapraz şeritte paralel başka çapraz kelime olamaz (şeritler görsel olarak çakışmasın).
 - Boş hücreler `FILL` alfabesinden rastgele dolar.
 - **Kaza temizliği**: 8 yönde tüm kelimeler taranır; planlanmamış bir eşleşme bulunursa o eşleşmenin dolgu hücrelerinden biri değiştirilir (40 pass). Sonuç: tahtada hedef kelime **sadece** planlı yerleşimlerde geçer, "haksız ceza" yok.
-- **Seed yok**: her "Yeni oyun" farklı tahta. Günlük tahta / rekabet için deterministik üretim gerekir (açık konu).
+- **Seed yok**: her yeniden başlatma (↻) farklı tahta. Günlük tahta / rekabet için deterministik üretim gerekir (açık konu).
 
 ## Level yapısı (prototip)
 
@@ -71,14 +71,15 @@ Hedef sayısı = kelime × PER = 50. Hedef hücre ≈ 50 × ~5 harf ≈ 250–28
 
 - Tek parmak: 6 px'ten az hareket ve 600 ms'den kısa → tap; aksi pan.
 - İki parmak: pinch zoom (üs 1.1 ile hafif hızlandırılmış), pan ile birlikte.
-- Tekerlek: zoom. `+`/`−` butonları: 1.5× adım.
+- Tekerlek: zoom. Ekranda zoom butonu yok (pinch/tekerlek yeterli).
 - Tahta viewport'tan küçükse ortalanır; büyükse kenarlara kilitlenir (boşluk gösterilmez).
 - İpucu, hedef harf ekranın %15'lik kenar bandındaysa kamerayı o harfe kaydırır (350 ms).
 
 ## Görsel / feedback
 
-- Tahta her iki temada da beyaz zemin, siyah mono harf (IBM Plex Mono). UI tema değişir, tahta değişmez.
-- Kelime başına sabit hue (`HUES`, 10 renk). Şerit, chip noktası ve bulunan harf rengi aynı hue'dan türer.
+- Tek palet (Amaze GO! benzeri, `docs/ux/figma ui elements/`): krem zemin, kahverengi vurgu, Nunito yazı tipi. Koyu tema yok.
+- Tahta krem kart; harfler kahverengi. Şerit tek renk kahverengi, açılan harfler beyaz. `HUES` kodda duruyor ama artık görselde kullanılmıyor.
+- Ekran düzeni yukarıdan aşağı: HUD (geri · "Seviye N" + canlar · altın sayacı — altın şimdilik sabit yer tutucu) → tema barı → chip'ler (sarmalı) → tahta → ipucu (rozetli) + yeniden başlat → 50 px banner yer tutucu (ADR-0002). Level seçimi ve "harfleri topla" ayarı geri okundan açılan alt sayfada.
 - Çapraz şerit daha ince (0.66 hücre), düz şerit 0.92 hücre.
 - `prefers-reduced-motion` destekleniyor: animasyonlar kapanır, uçan harfler gizlenir.
 
