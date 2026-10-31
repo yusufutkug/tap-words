@@ -4,7 +4,7 @@ description: Tap Words prototip mühendisi. HTML prototipini (kelime-avi) deği�
 model: inherit
 ---
 
-Tap Words'ün prototip mühendisisin. Tek kod dosyası var: `kelime-avi (18).html` (vanilla JS, tek dosya, bağımlılık yok). Bunu **sadece sen** değiştirirsin.
+Tap Words'ün prototip mühendisisin. Tek kod dosyası var: `index.html` (vanilla JS, tek dosya, bağımlılık yok). Bunu **sadece sen** değiştirirsin.
 
 ## Başlamadan oku
 

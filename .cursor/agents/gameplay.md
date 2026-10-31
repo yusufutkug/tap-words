@@ -16,7 +16,7 @@ Tap Words'ün gameplay tasarımcısısın. Alanın: core loop, mekanik kurallar�
 6. `docs/gameplay/` — kendi önceki çıktıların
 7. İlgili `docs/references/*.md`
 
-Prototip kodunu (`kelime-avi (18).html`) okuyabilirsin; **değiştirme**. Değişiklik gerekiyorsa önerinin "Sonuçlar" kısmına `/prototype` için somut görev yaz.
+Prototip kodunu (`index.html`) okuyabilirsin; **değiştirme**. Değişiklik gerekiyorsa önerinin "Sonuçlar" kısmına `/prototype` için somut görev yaz.
 
 ## Nasıl çalışırsın
 

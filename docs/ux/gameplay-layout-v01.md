@@ -24,7 +24,7 @@ Tüm hesaplar bu varsayımlarla; biri değişirse tablolar yeniden hesaplanır.
 
 ### 1.1 Mevcut prototip (ölçüm, 390 pt genişlik)
 
-Prototipte `<meta name="viewport">` **yok**; telefonda sayfa 980 px genişlikte render edilip ölçeklenir, yani aşağıdaki sayılar meta eklendikten sonra beklenen değerlerdir. Kaynak: `kelime-avi (18).html` CSS (body `padding-block:10px 12px; gap:10px`, side padding 16; `base=20`, `PAD=48`).
+Prototipte `<meta name="viewport">` **yok**; telefonda sayfa 980 px genişlikte render edilip ölçeklenir, yani aşağıdaki sayılar meta eklendikten sonra beklenen değerlerdir. Kaynak: `index.html` CSS (body `padding-block:10px 12px; gap:10px`, side padding 16; `base=20`, `PAD=48`).
 
 | Öğe | Yükseklik (pt) | Neden |
 |---|---|---|

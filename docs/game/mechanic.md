@@ -1,6 +1,6 @@
 # Mekanik: Kesin Kurallar
 
-Kaynak: `kelime-avi (18).html` (prototip v18). Bu doküman prototipin davranışını tarif eder; tasarım niyetini değil. Prototip değişirse `/prototype` bu dosyayı günceller.
+Kaynak: `index.html` (prototip v18). Bu doküman prototipin davranışını tarif eder; tasarım niyetini değil. Prototip değişirse `/prototype` bu dosyayı günceller.
 
 ## Terimler
 
