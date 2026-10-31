@@ -51,19 +51,12 @@ Hedef sayısı = kelime × PER = 50. Hedef hücre ≈ 50 × ~5 harf ≈ 250–28
 - Çapraz yerleşimlerde komşu çapraz şeritte paralel başka çapraz kelime olamaz (şeritler görsel olarak çakışmasın).
 - Boş hücreler `FILL` alfabesinden rastgele dolar.
 - **Kaza temizliği**: 8 yönde tüm kelimeler taranır; planlanmamış bir eşleşme bulunursa o eşleşmenin dolgu hücrelerinden biri değiştirilir (40 pass). Sonuç: tahtada hedef kelime **sadece** planlı yerleşimlerde geçer, "haksız ceza" yok.
+- **Kelime listesi kısıtı (Unity generator için de geçerli):** aynı levelda **palindrom kelime** (KABAK, KAYAK, ETEK, KAZAK, KAVAK, KAPAK) ve **başka bir kelimeyi içeren kelime** (KRAL/KRALİÇE, GELİN/GELİNLİK) olamaz. Kaza temizliği yalnızca dolgu hücresi değiştirebildiği için bu eşleşmeler düzeltilemez ve tahta üretimi başarısız olur. 50 levellik liste bu kurala göre elendi.
 - **Seed yok**: her yeniden başlatma (↻) farklı tahta. Günlük tahta / rekabet için deterministik üretim gerekir (açık konu).
 
 ## Level yapısı (prototip)
 
-5 level, hepsi aynı parametrelerle; sadece kelime listesi (tema) değişir:
-
-| # | Tema | Kelimeler |
-|---|---|---|
-| 1 | Karışık | KALEM ELMA DENİZ KİTAP GÜNEŞ ÇİÇEK BALIK YILDIZ ORMAN KÖPEK |
-| 2 | Mutfak | EKMEK PEYNİR ÇORBA SALATA ZEYTİN BİBER KAHVE ŞEKER LİMON PİLAV |
-| 3 | Hayvanlar | ASLAN KAPLAN TAVŞAN KARTAL YILAN KEDİ KOYUN ÖRDEK TİLKİ KUZU |
-| 4 | Doğa | NEHİR VADİ TEPE BULUT RÜZGAR YAĞMUR TOPRAK ÇAYIR KAYA ŞİMŞEK |
-| 5 | Ev | MASA KOLTUK YASTIK PERDE HALI LAMBA DOLAP AYNA KAPI TABAK |
+50 level, hepsi aynı parametrelerle; sadece kelime listesi (tema) değişir. Liste `index.html` içinde `LEVELS` dizisinde (ilk 5: Karışık, Mutfak, Hayvanlar, Doğa, Ev; sonra Meyveler, Sebzeler, Renkler, Meslekler, Spor, Taşıtlar, Vücut, Giysiler, Okul, Deniz, Uzay, Hava, Müzik, Çiçekler, Ağaçlar, Kuşlar, Böcekler, Şehirler, Ülkeler, Aile, Duygular, Kahvaltı, Tatlılar, İçecekler, Mobilya, Banyo, Sofra, Bahçe, Orman, Çiftlik, Oyuncaklar, Teknoloji, Aletler, Hastane, Masallar, Tatil, Sinema, Kitap, Zaman, Matematik, Aylar, Organlar, Kamp, Market, Düğün). Her levelda 10 kelime, 4–8 harf. Son oynanan level `localStorage` ile hatırlanır.
 
 **Zorluk eğrisi yok.** Level verisi = kelime listesi; tüm zorluk parametreleri global sabit.
 
@@ -79,7 +72,7 @@ Hedef sayısı = kelime × PER = 50. Hedef hücre ≈ 50 × ~5 harf ≈ 250–28
 
 - Tek palet (Amaze GO! benzeri, `docs/ux/figma ui elements/`): krem zemin, kahverengi vurgu, Nunito yazı tipi. Koyu tema yok.
 - Tahta krem kart; harfler kahverengi. Şerit tek renk kahverengi, açılan harfler beyaz. `HUES` kodda duruyor ama artık görselde kullanılmıyor.
-- Ekran düzeni yukarıdan aşağı: HUD (geri · "Seviye N" + canlar · altın sayacı — altın şimdilik sabit yer tutucu) → tema barı → chip'ler (sarmalı) → tahta → ipucu (rozetli) + yeniden başlat → 50 px banner yer tutucu (ADR-0002). Level seçimi ve "harfleri topla" ayarı geri okundan açılan alt sayfada.
+- Ekran düzeni yukarıdan aşağı: HUD (geri · "Seviye N" + canlar · altın sayacı — altın şimdilik sabit yer tutucu) → tema barı → chip'ler (sarmalı) → tahta → ipucu (rozetli) + yeniden başlat. Banner (ADR-0002) prototipte simüle edilmiyor; Unity spec'inde kalır. Level seçimi ve "harfleri topla" ayarı geri okundan açılan alt sayfada.
 - Çapraz şerit daha ince (0.66 hücre), düz şerit 0.92 hücre.
 - `prefers-reduced-motion` destekleniyor: animasyonlar kapanır, uçan harfler gizlenir.
 
