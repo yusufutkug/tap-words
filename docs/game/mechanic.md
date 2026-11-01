@@ -65,7 +65,7 @@ Hedef sayısı = kelime × PER = 50. Hedef hücre ≈ 50 × ~5 harf ≈ 250–28
 - Tek parmak: 6 px'ten az hareket ve 600 ms'den kısa → tap; aksi pan.
 - İki parmak: pinch zoom (üs 1.1 ile hafif hızlandırılmış), pan ile birlikte.
 - Tekerlek: zoom. Ekranda zoom butonu yok (pinch/tekerlek yeterli).
-- Tahta viewport'tan küçükse ortalanır; büyükse kenarlara kilitlenir (boşluk gösterilmez).
+- **Serbest kaydırma (Amaze GO! gibi):** tahta başlangıçta ortalanır; sonra herhangi bir kenarı ekranın ortasına kadar kaydırılabilir, ötesine geçemez (`clamp`: tx ∈ [W/2 − BW, W/2]). Tahta krem kart olarak zeminden ayrışır, kenar görünür.
 - İpucu, hedef harf ekranın %15'lik kenar bandındaysa kamerayı o harfe kaydırır (350 ms).
 
 ## Görsel / feedback
@@ -73,6 +73,7 @@ Hedef sayısı = kelime × PER = 50. Hedef hücre ≈ 50 × ~5 harf ≈ 250–28
 - Tek palet (Amaze GO! benzeri, `docs/ux/figma ui elements/`): krem zemin, kahverengi vurgu, Nunito yazı tipi. Koyu tema yok.
 - Tahta krem kart; harfler kahverengi. Şerit tek renk kahverengi, açılan harfler beyaz. `HUES` kodda duruyor ama artık görselde kullanılmıyor.
 - Ekran düzeni yukarıdan aşağı: HUD (geri · "Seviye N" + canlar · altın sayacı — altın şimdilik sabit yer tutucu) → tema barı → chip'ler (sarmalı) → tahta → ipucu (rozetli) + yeniden başlat. Banner (ADR-0002) prototipte simüle edilmiyor; Unity spec'inde kalır. Level seçimi ve "harfleri topla" ayarı geri okundan açılan alt sayfada.
+- Harf boyutu hücrenin 0.88'i (eskiden 0.72); hücre adımı değişmedi, harfler görsel olarak daha sık.
 - Çapraz şerit daha ince (0.66 hücre), düz şerit 0.92 hücre.
 - `prefers-reduced-motion` destekleniyor: animasyonlar kapanır, uçan harfler gizlenir.
 

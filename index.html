@@ -53,9 +53,9 @@ button:focus-visible{outline:2px solid var(--brown-x);outline-offset:2px}
 @keyframes bump{40%{transform:scale(1.15)}}
 
 /* Board */
-#viewport{flex:1;min-height:0;position:relative;margin:0 max(12px,env(safe-area-inset-right,0px)) 0 max(12px,env(safe-area-inset-left,0px));overflow:hidden;border-radius:12px;background:var(--card);box-shadow:0 1px 3px rgba(92,64,53,.12);touch-action:none;user-select:none;-webkit-user-select:none;cursor:grab}
+#viewport{flex:1;min-height:0;position:relative;margin:0 max(12px,env(safe-area-inset-right,0px)) 0 max(12px,env(safe-area-inset-left,0px));overflow:hidden;border-radius:12px;background:transparent;touch-action:none;user-select:none;-webkit-user-select:none;cursor:grab}
 #viewport.dragging{cursor:grabbing}
-#grid{position:absolute;left:0;top:0;transform-origin:0 0;display:grid;will-change:transform;background:var(--card);box-sizing:content-box}
+#grid{position:absolute;left:0;top:0;transform-origin:0 0;display:grid;will-change:transform;background:var(--card);box-sizing:content-box;border-radius:12px;box-shadow:0 1px 3px rgba(92,64,53,.12)}
 .cell{display:flex;align-items:center;justify-content:center;font-weight:800;color:var(--brown-d);box-sizing:border-box;line-height:1;border-radius:3px;position:relative;z-index:1}
 .cell.found{color:var(--white)}
 .strip{position:absolute;border-radius:999px;background:var(--brown);transform-origin:0 50%;z-index:0;animation:pop .28s ease-out}
@@ -289,7 +289,7 @@ function renderLives(){
 function buildGrid(){
   grid.style.gridTemplateColumns=`repeat(${COLS},${base}px)`;
   grid.style.width=(COLS*base)+"px"; grid.style.height=(ROWS*base)+"px"; grid.style.padding=PAD+"px";
-  grid.style.fontSize=(base*.72)+"px";
+  grid.style.fontSize=(base*.88)+"px"; // letters fill the cell more; cell pitch unchanged
   let h="";
   for(let i=0;i<ROWS*COLS;i++){
     const p=G.owner[i];
@@ -311,14 +311,15 @@ function updateChip(wi){
 // ---- zoom / pan ----
 const BW=()=>(COLS*base+2*PAD)*scale, BH=()=>(ROWS*base+2*PAD)*scale;
 function apply(){grid.style.transform=`translate(${tx}px,${ty}px) scale(${scale})`}
-function clamp(){
+function clamp(){ // free scroll (Amaze GO!): any board edge may travel up to the viewport centre, never past it
   const W=vp.clientWidth,H=vp.clientHeight;
-  tx=BW()<=W?(W-BW())/2:Math.min(0,Math.max(W-BW(),tx));
-  ty=BH()<=H?(H-BH())/2:Math.min(0,Math.max(H-BH(),ty));
+  tx=Math.min(W/2,Math.max(W/2-BW(),tx));
+  ty=Math.min(H/2,Math.max(H/2-BH(),ty));
 }
 function fit(){
   const W=vp.clientWidth,H=vp.clientHeight;
   scale=Math.min(W/(COLS*base+2*PAD),H/(ROWS*base+2*PAD)); minScale=scale;
+  tx=(W-BW())/2; ty=(H-BH())/2; // start centred
   clamp();apply();
 }
 function zoomAt(f,cx,cy){
