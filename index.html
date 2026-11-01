@@ -289,7 +289,7 @@ function renderLives(){
 function buildGrid(){
   grid.style.gridTemplateColumns=`repeat(${COLS},${base}px)`;
   grid.style.width=(COLS*base)+"px"; grid.style.height=(ROWS*base)+"px"; grid.style.padding=PAD+"px";
-  grid.style.fontSize=(base*.88)+"px"; // letters fill the cell more; cell pitch unchanged
+  grid.style.fontSize=(base*.8)+"px"; // letters fill the cell more; cell pitch unchanged
   let h="";
   for(let i=0;i<ROWS*COLS;i++){
     const p=G.owner[i];

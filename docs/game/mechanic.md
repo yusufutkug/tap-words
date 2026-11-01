@@ -73,7 +73,7 @@ Hedef sayısı = kelime × PER = 50. Hedef hücre ≈ 50 × ~5 harf ≈ 250–28
 - Tek palet (Amaze GO! benzeri, `docs/ux/figma ui elements/`): krem zemin, kahverengi vurgu, Nunito yazı tipi. Koyu tema yok.
 - Tahta krem kart; harfler kahverengi. Şerit tek renk kahverengi, açılan harfler beyaz. `HUES` kodda duruyor ama artık görselde kullanılmıyor.
 - Ekran düzeni yukarıdan aşağı: HUD (geri · "Seviye N" + canlar · altın sayacı — altın şimdilik sabit yer tutucu) → tema barı → chip'ler (sarmalı) → tahta → ipucu (rozetli) + yeniden başlat. Banner (ADR-0002) prototipte simüle edilmiyor; Unity spec'inde kalır. Level seçimi ve "harfleri topla" ayarı geri okundan açılan alt sayfada.
-- Harf boyutu hücrenin 0.88'i (eskiden 0.72); hücre adımı değişmedi, harfler görsel olarak daha sık.
+- Harf boyutu hücrenin 0.8'i (eskiden 0.72); hücre adımı değişmedi, harfler görsel olarak daha sık.
 - Çapraz şerit daha ince (0.66 hücre), düz şerit 0.92 hücre.
 - `prefers-reduced-motion` destekleniyor: animasyonlar kapanır, uçan harfler gizlenir.
 
