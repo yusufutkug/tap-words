@@ -52,7 +52,7 @@ Hedef sayısı = kelime × PER = 50. Hedef hücre ≈ 50 × ~5 harf ≈ 250–28
 - Boş hücreler `FILL` alfabesinden rastgele dolar.
 - **Kaza temizliği**: 8 yönde tüm kelimeler taranır; planlanmamış bir eşleşme bulunursa o eşleşmenin dolgu hücrelerinden biri değiştirilir (40 pass). Sonuç: tahtada hedef kelime **sadece** planlı yerleşimlerde geçer, "haksız ceza" yok.
 - **Kelime listesi kısıtı (Unity generator için de geçerli):** aynı levelda **palindrom kelime** (KABAK, KAYAK, ETEK, KAZAK, KAVAK, KAPAK) ve **başka bir kelimeyi içeren kelime** (KRAL/KRALİÇE, GELİN/GELİNLİK) olamaz. Kaza temizliği yalnızca dolgu hücresi değiştirebildiği için bu eşleşmeler düzeltilemez ve tahta üretimi başarısız olur. 50 levellik liste bu kurala göre elendi.
-- **Seed yok**: her yeniden başlatma (↻) farklı tahta. Günlük tahta / rekabet için deterministik üretim gerekir (açık konu).
+- **Pre-baked tahtalar (2026-11-02, ADR-0005 mock):** 50 levelın tahtası `levels.js` içinde sabit; herkes aynı tahtayı oynar, ↻ aynı tahtayı yeniden başlatır. Üretim repo dışı script ile (seed 20261102), format `letters` (500 harf) + `p = [kelime, başlangıç, dr, dc]`. `levels.js` yoksa runtime `generate()` devreye girer (eski davranış: her ↻ farklı tahta).
 
 ## Level yapısı (prototip)
 
@@ -94,8 +94,8 @@ Zorluk eğrisi kurulurken oynanabilecek parametreler, etkisiyle:
 
 ## Açık konular (prototipten gelen)
 
-- Seed'li üretim yok → günlük tahta, paylaşılabilir tahta, A/B için gerekli.
+- ~~Seed'li üretim yok~~ → pre-baked `levels.js` ile kapandı (ADR-0005); daily paketi aynı yolla üretilecek.
 - Can cezası zayıf; "yanlış tap" neredeyse bedava.
 - 20×25 telefon ekranında zoom'suz okunamaz; ilk görünüm "sığdır" hali küçük harf demek.
 - Chip alanı 10 kelimeyle 2–3 satır; daha fazla kelime UI'ı bozar.
-- Level bitişi tek ekran; yıldız/puan/süre yok.
+- Level bitişi tek ekran; yıldız/puan yok. Win kartında **süre (m:ss)** gösteriliyor (2026-11-02); fail kartında yok.

@@ -124,6 +124,7 @@ button:focus-visible{outline:2px solid var(--brown-x);outline-offset:2px}
   </div>
 </div>
 
+<script src="levels.js"></script>
 <script>
 const COLS=20, ROWS=25, PER=5, MAXL=5;
 // 50 themed levels, 10 words each (4–8 letters). Same global parameters; only the word list changes.
@@ -255,6 +256,18 @@ function generate(){
   }
   throw new Error("Board could not be generated");
 }
+// Pre-baked tahta (levels.js, ADR-0005 mock). Yoksa veya boyut uymuyorsa runtime generate().
+function baked(lv){
+  const D=window.LEVEL_DATA, L=D?.levels?.[lv];
+  if(!L||D.cols!==COLS||D.rows!==ROWS||L.letters.length!==ROWS*COLS)return null;
+  const letters=[...L.letters], owner=new Array(ROWS*COLS).fill(-1);
+  const placements=L.p.map(([wi,start,dr,dc],pid)=>{
+    const len=[...WORDS[wi]].length, cells=[];
+    for(let i=0;i<len;i++){const idx=start+i*(dr*COLS+dc);cells.push(idx);owner[idx]=pid}
+    return {word:wi,cells,dir:[dr,dc]};
+  });
+  return {owner,letters,placements};
+}
 
 // ---- state ----
 let G, found, lives, over, hints=0, startedAt=0; const MAXH=3;
@@ -268,7 +281,7 @@ function newGame(state,lv){
   try{localStorage.setItem("ka-level",level)}catch(e){}
   WORDS=LEVELS[level].words;
   renderLevels();
-  G=state?.G??generate();
+  G=state?.G??baked(level)??generate();
   found=state?.found??new Array(G.placements.length).fill(false);
   lives=state?.lives??MAXL; over=false; hints=state?.hints??MAXH;
   startedAt=state?.startedAt??Date.now();
