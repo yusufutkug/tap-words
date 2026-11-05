@@ -21,9 +21,9 @@ Kaynak: `index.html` (prototip v18). Bu doküman prototipin davranışını tari
 
 | Parametre | Kod | Değer | Ne yapar |
 |---|---|---|---|
-| Sütun | `COLS` | 20 | |
-| Satır | `ROWS` | 25 | |
-| Kopya sayısı | `PER` | 5 | Her kelime tahtaya kaç kez konur |
+| Sütun | `COLS` | 20 | **Level başına** (`LEVELS[i].cols`, yoksa 20) — 2026-11-05 |
+| Satır | `ROWS` | 25 | Level başına (`LEVELS[i].rows`, yoksa 25) |
+| Kopya sayısı | `PER` | 5 | Her kelime tahtaya kaç kez konur; level başına (`LEVELS[i].per`, yoksa 5) |
 | Can | `MAXL` | 5 | |
 | İpucu | `MAXH` | 3 | Level başına |
 | Kelime/level | — | 10 | `LEVELS[].words` uzunluğu |
@@ -58,7 +58,9 @@ Hedef sayısı = kelime × PER = 50. Hedef hücre ≈ 50 × ~5 harf ≈ 250–28
 
 50 level, hepsi aynı parametrelerle; sadece kelime listesi (tema) değişir. Liste `index.html` içinde `LEVELS` dizisinde (ilk 5: Karışık, Mutfak, Hayvanlar, Doğa, Ev; sonra Meyveler, Sebzeler, Renkler, Meslekler, Spor, Taşıtlar, Vücut, Giysiler, Okul, Deniz, Uzay, Hava, Müzik, Çiçekler, Ağaçlar, Kuşlar, Böcekler, Şehirler, Ülkeler, Aile, Duygular, Kahvaltı, Tatlılar, İçecekler, Mobilya, Banyo, Sofra, Bahçe, Orman, Çiftlik, Oyuncaklar, Teknoloji, Aletler, Hastane, Masallar, Tatil, Sinema, Kitap, Zaman, Matematik, Aylar, Organlar, Kamp, Market, Düğün). Her levelda 10 kelime, 4–8 harf. Son oynanan level `localStorage` ile hatırlanır.
 
-**Zorluk eğrisi yok.** Level verisi = kelime listesi; tüm zorluk parametreleri global sabit.
+**Zorluk eğrisi yok.** Level verisi = kelime listesi; 50 levelda tüm zorluk parametreleri aynı. Level menüsünün sonundaki **T00–T11** parametre keşif levellarıdır (`test-levels.js`, K 6, can 5; PER / uzunluk / board tek tek değişir) — tasarım ve ölçüm: `docs/levels/param-tests-v01.md`.
+
+**Level sonu logu (2026-11-05):** her bitişte `{level, name, cols, rows, per, words, placements, found, ms, wrongTaps, wrongAt[], hintsUsed, result, at}` konsola (`[tapwords]`) ve `localStorage["ka-log"]`'a (son 300 kayıt) yazılır. `wrongAt[i]` = yanlış tap anında bulunmuş yerleşim sayısı.
 
 ## Kamera ve input
 
@@ -98,4 +100,4 @@ Zorluk eğrisi kurulurken oynanabilecek parametreler, etkisiyle:
 - Can cezası zayıf; "yanlış tap" neredeyse bedava.
 - 20×25 telefon ekranında zoom'suz okunamaz; ilk görünüm "sığdır" hali küçük harf demek.
 - Chip alanı 10 kelimeyle 2–3 satır; daha fazla kelime UI'ı bozar.
-- Level bitişi tek ekran; yıldız/puan yok. Win kartında **süre (m:ss)** gösteriliyor (2026-11-02); fail kartında yok.
+- Level bitişi tek ekran; yıldız/puan yok. Win ve fail kartında **süre (m:ss) · yanlış tap · ipucu** gösteriliyor (2026-11-05).
