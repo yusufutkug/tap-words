@@ -4,6 +4,7 @@
 - Alan: level-design (ana sohbet, Utku + ana agent)
 - Amaç: oyunu zorlaştıran parametreleri **tek tek izole ederek** ölçmek. Zorluk eğrisi değil, kalibrasyon seti. `curve-v02.md`'nin "p sabitken tier farkı yalnızca hacimdir" iddiası bu setle test edilir.
 - Veri: `test-levels.js` (pre-baked, seed 20261105; ADR-0005 kalıbı). Prototipte level menüsünün sonunda `T00…T11` olarak görünür.
+- Parametre kataloğu ve bu setteki kullanımı (değişken / sabit / türetilmiş / ölçülen): `docs/levels/difficulty-parameters.md`.
 - Teslim paketi: `levels/test-levels-v01.json` — aynı tahtalar `tapwords-level/1` şemasında (`docs/levels/level-format.md`), Unity loader'ı için.
 
 ## Öneri

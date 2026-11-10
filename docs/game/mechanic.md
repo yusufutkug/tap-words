@@ -81,7 +81,7 @@ Hedef sayısı = kelime × PER = 50. Hedef hücre ≈ 50 × ~5 harf ≈ 250–28
 
 ## Zorluk kaldıraçları (değiştirilebilir düğmeler)
 
-Zorluk eğrisi kurulurken oynanabilecek parametreler, etkisiyle:
+Zorluk eğrisi kurulurken oynanabilecek parametreler, etkisiyle (tam katalog, sınıflandırma ve test setindeki kullanımı: `docs/levels/difficulty-parameters.md`):
 
 | Kaldıraç | Zorlaştırır | Not |
 |---|---|---|
