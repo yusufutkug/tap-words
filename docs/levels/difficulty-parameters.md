@@ -47,6 +47,7 @@ Kod sütunu prototip (`index.html`) ve JSON şeması (`level-format.md`) karşı
 | 14 | Hedef hücre | \( H = PER \times \sum \text{uzunluk} \) | — | **T** | 60 … 210 |
 | 15 | Hedef hücre oranı | \( p = H / (R \times C) \) | **Risk** (ana) | **T** | 0,196 (T01) … 0,686 (T03, T06) |
 | 16 | Dinamik p (level sonu) | bulunan harfler gidince kalan hedef / kalan hücre | Risk | **Ö** (`wrongAt[]`) | Son yerleşimde p → ~%2–5 her levelda; log yanlış tap'ın hangi aşamada geldiğini kaydeder |
+| 16b | **Zorluk indeksi D** | \( D = Y \times (1 - p) \) | Risk × Hacim | **T** (ADR-0008) | 9,4 (T06) … 19,8 (T10). T00–T11 öznel sıralamasını 12'de 11 açıklıyor (`param-tests-v01-results.md`); tier hedefi artık D ile verilir (`curve-v03.md`) |
 
 p'nin bağımsız parametre **olmadığı** test tasarımının çekirdeği: K, PER, uzunluk ve tahta boyutundan dördünü seçince p kendiliğinden çıkar. Bu yüzden üç seri aynı p'ye farklı yoldan ulaşan çiftler üretir (bölüm 4).
 
@@ -71,6 +72,7 @@ Bunlar `words[]`'den türetilir ama generator parametresi değildir; listeyi kü
 | 24 | Dolguda özel harf | özel harfli dolgu / tüm dolgu | Risk ↑ (feneri söndürür) | ↑ | **Ö** | %13–21 |
 | 25 | Kopya kümelenmesi | aynı kelimenin kopyaları arası ort. merkez mesafesi / tahta köşegeni | Hacim ↓ (yakın kopyalar bedava bulunur) | ↓ | **Ö** | %30 (T05) … %40 (T04) köşegen — rastgele, kümelenme yok |
 | 26 | Kelime başına yön çeşitliliği | aynı kelimenin kopyaları kaç farklı yönde | Hacim ↑ | ↑ | **—** | Ölçülmedi; rastgele |
+| 26b | Çapraz X kesişmesi | SE ve SW yerleşimlerin hücre paylaşmadan görsel X yaptığı çift sayısı (`meta.xCross`) | Hacim ↑ (okuma) | ↑ | **Ö** v01 (0–4) → **D** v02 (`noDiagCross`, T09 4 ↔ T09X 0) | Generator kuralı yalnızca paralel komşu çaprazı engelliyordu; `noDiagCross` parametresi eklendi (`tools/bake.js`, `index.html`). T06'da 4 kesişme + "çok kolay" → etkisi p'ye bağlı olabilir |
 | 27 | Yakın-kelime tuzağı (near-miss) | hedeften 1 harf farklı dizi sayısı | Risk ↑ | ↑ | **—** | Kaza temizliği yalnızca tam eşleşmeyi siler; near-miss sayılmıyor. Pillar 3 ile gerilimli (`uncertainties.md`) |
 
 ## 3. Taban level ve seri mantığı
@@ -146,15 +148,25 @@ Hangi parametrenin etkisi hangi logdan okunur (`mechanic.md` level sonu logu, `l
 | Dinamik p | Risk (level sonu) | `wrongAt[]` içinde ≥ 0,75·Y olanların payı | Yanlış tap'lar son çeyrekte toplanıyorsa "harfleri topla" zorluğu level sonuna yığıyor |
 | İpucu | — | `hintsUsed` | Kullanıldıysa o oynanış ε hesabında işaretlenir |
 
-## 6. Bu sette oynatılmayan, sonraki setin adayları
+## 5b. v02 seti (2026-11-11): T09X, T12–T15
 
-Katalogdaki **S/B/Ö** parametreleri bilinçli olarak sabit tutuldu; T00–T11 sonuçları geldikten sonra ikinci set bunlardan seçilir. Aday sırası, beklenen etki büyüklüğüne göre:
+`param-tests-v02.md`. İlk oynanış sonuçları (`param-tests-v01-results.md`) iki soruyu açtı; v02 onları izole eder:
+
+| Level | Oynatılan | Sabit | Soru |
+|---|---|---|---|
+| T09X | #26b X kesişme 4 → 0 (`noDiagCross`) | T09'un her şeyi (kelimeler, grid, p, D) | Kesişme zorlaştırıyor mu? |
+| T12, T13 | #1 K 4 / 8, tahta K ile büyür (17×12, 17×24) | p 0,49, PER 5 | D'nin Y yoluyla doğrulanması (10 / 20) |
+| T14, T15 | #1 K 10 / 15 **ve** #2 PER 3 / 2 ters yönde | **Y 30, p 0,49, D 15,3 = T00** | K/PER bölüşümü tek başına zorluk üretir mi? |
+
+## 6. Bu setlerde oynatılmayan, sonraki setin adayları
+
+Katalogdaki **S/B/Ö** parametreleri bilinçli olarak sabit tutuldu; v02 sonuçları geldikten sonra üçüncü set bunlardan seçilir. Aday sırası, beklenen etki büyüklüğüne göre:
 
 1. **Dolgu–hedef örtüşmesi (#23)** — TR frekans alfabesiyle zaten %52–79; kontrollü olarak %0 (hedefte olmayan harflerden dolgu) ve %100 (yalnızca hedef harflerinden dolgu) uçları denenmeli. Risk ekseninde en güçlü tek kaldıraç adayı. Referans yok — /market-research'e soru düşülecek (WSE ve Amaze GO! dolgu alfabesini nasıl seçiyor).
 2. **Ters / çapraz oranı (#8, #9)** — WSE `hwp` L35+ kalıbı (`word-search-explorer.md`); %0 / %20 / %50 ters.
 3. **Özel harf oranı (#17)** — %0 vs %25; fener etkisinin büyüklüğü.
 4. **Kopya dağılımı (#3)** — eşit 5 vs 2–8 arası değişken (Netleşenler).
-5. **K (#1)** — 4 / 6 / 8, chip tek satır sınırına kadar.
+5. ~~K (#1)~~ → v02 setinde (T12–T15).
 6. **Can (#11)** — 3 (ADR-0004) ile aynı setin tekrarı; fail oranı için.
 
 Her yeni seri aynı kuralla kurulur: T00 tabanı korunur, tek parametre sapar, yön oranı ve özel harf bantta tutulur, seed gerçekleşen değerlere göre seçilir.

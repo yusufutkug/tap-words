@@ -48,7 +48,9 @@ Kararlaştırılmış, tartışılmayan kısıtlar. Detay ilgili ADR'de.
 
 - **Gameplay ekranında banner reklam alanı var** (ADR-0002). Ekran yerleşimi, tahta sığdırma ve okunabilirlik hesapları bu alan düşülerek yapılır.
 - **Referans oyunlar** (ADR-0001): sadelik/genel tasarım için Amaze GO!, level zorluk parametreleri için Word Search Explorer.
-- **Netleşenler (26 Ekim, ADR bekliyor):** fail state var (can sayısı sonra); leveller önceden üretilmiş; kopya sayısı kelimeye göre değişir, kelime listesi tek satır chip; bulunan harfler tahtadan gider; pan/zoom kalır; yanlış dokunuş kalıcı işaretlenir. Detay: `docs/uncertainties.md#netleşenler`.
+- **Ekonomi** (ADR-0003): coin + shop, WSE kalıbı; booster coin + RV; çıkışta 2–4 booster. **Can** (ADR-0004): genel havuz yok, level içi 3 can, play-on RV + coin. **Generator** (ADR-0005): offline üretim, Unity yalnızca JSON okur. **Dil** (ADR-0006): TR + EN. **Çıkış event seti** (ADR-0007): Daily Challenge, Daily Goals, Daily Rush, coin mini-oyunu, haftalık kavanoz koleksiyonu. Backend yok. **Zorluk** (ADR-0008): hedef **D = Y × (1 − p)**; p kaldıraçtır (0,39–0,59), tier'lar D bandıyla (F ≤ 10, R 12–13, N 15, H 17–18, S ≥ 20); zorlaştırmak için kısa kelime, büyük tahta değil; sütun 17. Eğri `docs/levels/curve-v03.md`, parametre kataloğu `docs/levels/difficulty-parameters.md`.
+- **Execution planı:** `docs/planning/execution-plan-v01.md` — 2 sprint, üç akış (GP/LO/OR) + SPEC; kapılar K1–K4. Agent'lar görevlerini bu plandaki kapıya göre önceliklendirir.
+- **Netleşenler (26 Ekim, ADR bekliyor):** kopya sayısı kelimeye göre değişir, kelime listesi tek satır chip; bulunan harfler tahtadan gider; pan/zoom kalır; yanlış dokunuş kalıcı işaretlenir. Detay: `docs/uncertainties.md#netleşenler`.
 
 ## Çıktı formatı
 

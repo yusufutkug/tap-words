@@ -184,7 +184,7 @@ const LEVELS=[
 ];
 // Parameter-exploration test levels (test-levels.js, docs/levels/param-tests-v01.md): K=6, can 5; PER / uzunluk / board birer birer değişir.
 const BASE_N=LEVELS.length;
-(window.TEST_LEVEL_DATA?.levels??[]).forEach(t=>LEVELS.push({name:`${t.id} · ${t.name}`,words:t.words,cols:t.cols,rows:t.rows,per:t.per,test:t}));
+(window.TEST_LEVEL_DATA?.levels??[]).forEach(t=>LEVELS.push({name:`${t.id} · ${t.name}`,words:t.words,cols:t.cols,rows:t.rows,per:t.per,noDiagCross:!!t.noDiagCross,test:t}));
 let level=0, WORDS=LEVELS[0].words;
 const HUES=[210,25,150,280,45,330,180,90,0,250];
 const FILL="AAAAAAAEEEEEEİİİİİNNNNNRRRRLLLLKKKKDDDIIIMMMUUUTTTSSSYYYOOOBBBÜÜŞŞZZGGÇÇHHVVPPÖÖFCĞJ";
@@ -194,6 +194,16 @@ const DIRS=[];
 const ALL8=[[0,1],[1,0],[1,1],[-1,1],[0,-1],[-1,0],[-1,-1],[1,-1]];
 const rnd=n=>Math.floor(Math.random()*n);
 const inb=(r,c)=>r>=0&&r<ROWS&&c>=0&&c<COLS;
+let NOX=false; // LEVELS[i].noDiagCross: SE ve SW çaprazlar hücre paylaşmadan görsel X yapamaz (tools/bake.js ile aynı kural)
+function crossesDiag(cells,dr,dc,owner,placements){
+  for(let i=0;i<cells.length-1;i++){
+    const a=cells[i], r=Math.floor(a/COLS), c=a%COLS;
+    const o1=owner[(r+dr)*COLS+c], o2=owner[r*COLS+(c+dc)];
+    if(o1===-1||o1!==o2)continue;
+    const od=placements[o1].dir; if(od[0]!==0&&od[1]!==0&&od[0]*od[1]!==dr*dc)return true;
+  }
+  return false;
+}
 
 function generate(){
   for(let attempt=0;attempt<400;attempt++){
@@ -224,6 +234,7 @@ function generate(){
             cells.push(idx);
           }
           if(!free)continue;
+          if(NOX&&diag&&crossesDiag(cells,dr,dc,owner,placements))continue; // no visual X between SE and SW words
           const pid=placements.length;
           cells.forEach((idx,i)=>{owner[idx]=pid;letters[idx]=w[i]});
           placements.push({word:wi,cells,dir:[dr,dc]});placed=true;
@@ -286,7 +297,7 @@ function newGame(state,lv){
   if(lv!==undefined)level=lv; if(state&&state.level!==undefined)level=state.level;
   try{localStorage.setItem("ka-level",level)}catch(e){}
   const L=LEVELS[level]; WORDS=L.words;
-  COLS=L.cols??DEF.cols; ROWS=L.rows??DEF.rows; PER=L.per??DEF.per;
+  COLS=L.cols??DEF.cols; ROWS=L.rows??DEF.rows; PER=L.per??DEF.per; NOX=!!L.noDiagCross;
   renderLevels();
   G=state?.G??baked(level)??generate();
   found=state?.found??new Array(G.placements.length).fill(false);

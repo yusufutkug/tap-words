@@ -65,6 +65,7 @@
 | `cols`, `rows` | int | Tahta boyutu. `grid.length === rows`, her satır `cols` karakter. |
 | `per` | int | Her kelimenin kopya sayısı. `placements` içinde her `wordIndex` tam `per` kez geçer. (Netleşenler'deki "kelimeye göre değişen kopya" gelirse `per` yerine `copies[]` dizisi eklenir; `per` o zaman kaldırılır.) |
 | `lives`, `hints` | int | Level içi can ve ipucu. ADR-0004 → 3 can; test paketinde 5. |
+| `noDiagCross` | bool? | `true` → tahtada SE ve SW çaprazlar görsel X yapmaz (generator kuralı, `param-tests-v02.md`). Loader kullanmaz; üretim bilgisi. Yoksa `false`. |
 | `words` | string[] | Chip sırası. Büyük harf, dilin kendi büyük harfleri (`İ`, `I`). Palindrom yok; hiçbir kelime (veya tersi) başka bir kelimenin alt dizisi değil (generator kısıtı, `mechanic.md`). |
 | `grid` | string[] | `rows` adet satır; her satır `cols` adet **Unicode karakter** (UTF-16 code unit değil; Unity'de `StringInfo`/`EnumerateRunes` ile sayılmalı). |
 | `placements[]` | object[] | Her kopya bir kayıt. `word` ve `wordIndex` ikisi de var (okunabilirlik + hız). `row/col` ilk harf; `dir` 8 yön (`E S SE SW W N NW NE`), `dr/dc` aynı bilginin sayısal hali; `cells` her harfin koordinatı, kelime sırasıyla. **Yerleşimler kesişmez**: bir hücre en fazla bir yerleşime aittir. |
@@ -72,6 +73,8 @@
 | `meta.targetCells` | int | Σ `cells.length`. |
 | `meta.fillCells` | int | `fill.length`. |
 | `meta.ratio` | float | `targetCells / (cols × rows)` — hedef hücre oranı `p`. |
+| `meta.D` | float | Zorluk indeksi `Y × (1 − p)`, Y = `placements.length` (ADR-0008). Bilgi amaçlı; analitik ve tier doğrulaması için. |
+| `meta.xCross` | int | Görsel X yapan çapraz yerleşim çifti sayısı. `noDiagCross: true` ise 0. |
 | `meta.reversedShare` | float | Ters yazılı (`W N NW NE`) yerleşim payı. |
 | `meta.diagonalShare` | float | Çapraz yerleşim payı. |
 | `meta.theme` | string | Tema etiketi (ekranda gösterilen). |
@@ -90,7 +93,7 @@ Hata → level atlanmaz, paket reddedilir (üretim hatası, oyuncu hatası deği
 
 ## Prototip ile ilişki
 
-Prototip (`index.html`) hâlâ kompakt formatı okur (`levels.js`, `test-levels.js`: `letters` düz dizi + `p = [wordIdx, startIdx, dr, dc]`). Bu JSON ondan türetilir (`/tmp` script, 2026-11-05); iki kaynak aynı seed'den geldiği için tahtalar birebir aynıdır. ADR-0005'teki `tools/` generator'ı yazıldığında **doğrudan bu formatı** üretecek, kompakt format prototipe özel kalacak.
+Prototip (`index.html`) hâlâ kompakt formatı okur (`levels.js`, `test-levels.js`: `letters` düz dizi + `p = [wordIdx, startIdx, dr, dc]`). Bu JSON ondan türetilir: `node tools/bake.js pack test-levels.js <paket-adı> > levels/<dosya>.json` (2026-11-11'den itibaren; `tools/bake.js` ADR-0005'in offline generator'ıdır: `validate`, `bake`, `pack`, `check` modları). İki kaynak aynı seed'den geldiği için tahtalar birebir aynıdır. Paketler: `levels/test-levels-v01.json` (T00–T11), `levels/test-levels-v02.json` (T00–T11 + T09X, T12–T15).
 
 ## Açık noktalar
 

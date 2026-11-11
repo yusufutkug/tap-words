@@ -5,6 +5,7 @@
 - Amaç: oyunu zorlaştıran parametreleri **tek tek izole ederek** ölçmek. Zorluk eğrisi değil, kalibrasyon seti. `curve-v02.md`'nin "p sabitken tier farkı yalnızca hacimdir" iddiası bu setle test edilir.
 - Veri: `test-levels.js` (pre-baked, seed 20261105; ADR-0005 kalıbı). Prototipte level menüsünün sonunda `T00…T11` olarak görünür.
 - Parametre kataloğu ve bu setteki kullanımı (değişken / sabit / türetilmiş / ölçülen): `docs/levels/difficulty-parameters.md`.
+- **Sonuçlar (ilk oynanış, 11 Kasım):** `param-tests-v01-results.md` → ADR-0008 (D = Y × (1 − p)), `curve-v03.md`, devam seti `param-tests-v02.md`. Level tablosundaki "zorluk" sütunu Utku'nun oynanış notlarıdır.
 - Teslim paketi: `levels/test-levels-v01.json` — aynı tahtalar `tapwords-level/1` şemasında (`docs/levels/level-format.md`), Unity loader'ı için.
 
 ## Öneri
@@ -33,20 +34,20 @@
 
 Y = yerleşim (K × PER). Hedef = hedef hücre. p = hedef / hücre. Ters/çapraz = tahtada gerçekleşen oran.
 
-| # | Seri | Tema | Grid | Hücre | PER | Uzunluk | Y | Hedef | p | Ters | Çapraz | Kelimeler |
-|---|---|---|---|---|---|---|---|---|---|---|---|---|
-| T00 | taban | Okul | 17×18 | 306 | 5 | 5 | 30 | 150 | 0,490 | 0,23 | 0,40 | KALEM SİLGİ KİTAP TAHTA SINIF ÇANTA |
-| T01 | PER | Vücut | 17×18 | 306 | **2** | 5 | 12 | 60 | 0,196 | 0,25 | 0,33 | BURUN KULAK BACAK BOYUN DUDAK KALÇA |
-| T02 | PER | Deniz | 17×18 | 306 | **3** | 5 | 18 | 90 | 0,294 | 0,22 | 0,33 | BALIK DALGA MARTI KAYIK MİDYE YOSUN |
-| T03 | PER | Mobilya | 17×18 | 306 | **7** | 5 | 42 | 210 | 0,686 | 0,21 | 0,31 | PERDE LAMBA DOLAP TABAK SEHPA RANZA |
-| T04 | uzunluk | Ev | 17×18 | 306 | 5 | **4** | 30 | 120 | 0,392 | 0,27 | 0,33 | MASA KAPI HALI SOBA ÇATI ODUN |
-| T05 | uzunluk | Hayvanlar | 17×18 | 306 | 5 | **6** | 30 | 180 | 0,588 | 0,23 | 0,30 | KAPLAN TAVŞAN KARTAL MAYMUN SİNCAP ZÜRAFA |
-| T06 | uzunluk | Karışık | 17×18 | 306 | 5 | **7** | 30 | 210 | 0,686 | 0,20 | 0,30 | TRAKTÖR GEZEGEN BAKLAVA KELEBEK KARINCA YUMURTA |
-| T07 | uzunluk | Mutfak | 17×18 | 306 | 5 | **4–7** (Σ31) | 30 | 155 | 0,507 | 0,20 | 0,30 | TAVA KASE KAŞIK ÇATAL BARDAK TENCERE |
-| T08 | board | Taşıtlar | **17×15** | 255 | 5 | 5 | 30 | 150 | 0,588 | 0,13 | 0,30 | ARABA VAPUR METRO TAKSİ MOTOR ROKET |
-| T09 | board | Kuşlar | **17×21** | 357 | 5 | 5 | 30 | 150 | 0,420 | 0,23 | 0,33 | SERÇE KARGA KUMRU ŞAHİN TAVUK HOROZ |
-| T10 | board | Doğa | **17×26** | 442 | 5 | 5 | 30 | 150 | 0,339 | 0,13 | 0,40 | NEHİR BULUT ÇAYIR ORMAN YAMAÇ SAHİL |
-| T11 | kontrol | Giysi | **20×15** | 300 | 5 | 5 | 30 | 150 | 0,500 | 0,17 | 0,33 | CEKET ÇORAP ŞAPKA KEMER PALTO HIRKA |
+| # | Seri | Tema | Grid | Hücre | PER | Uzunluk | Y | Hedef | p | Ters | Çapraz | Kelimeler | zorluk  |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|-------|
+| T00 | taban | Okul | 17×18 | 306 | 5 | 5 | 30 | 150 | 0,490 | 0,23 | 0,40 | KALEM SİLGİ KİTAP TAHTA SINIF ÇANTA | keyifli |
+| T01 | PER | Vücut | 17×18 | 306 | **2** | 5 | 12 | 60 | 0,196 | 0,25 | 0,33 | BURUN KULAK BACAK BOYUN DUDAK KALÇA | kısaydı zorlanmadım |
+| T02 | PER | Deniz | 17×18 | 306 | **3** | 5 | 18 | 90 | 0,294 | 0,22 | 0,33 | BALIK DALGA MARTI KAYIK MİDYE YOSUN |keyifliydi| 
+| T03 | PER | Mobilya | 17×18 | 306 | **7** | 5 | 42 | 210 | 0,686 | 0,21 | 0,31 | PERDE LAMBA DOLAP TABAK SEHPA RANZA |p bu kadar yüksek değerlere çıkınca level çok kolay oluyor oyunun başlarında bu p değerlerini kullanabiliriz belki ama oyunun ilerleyen levellarında olabilecek bi p değeri değil|
+| T04 | uzunluk | Ev | 17×18 | 306 | 5 | **4** | 30 | 120 | 0,392 | 0,27 | 0,33 | MASA KAPI HALI SOBA ÇATI ODUN |baya iyi leveldı zorluk açısından falan da güzel bi zordu|
+| T05 | uzunluk | Hayvanlar | 17×18 | 306 | 5 | **6** | 30 | 180 | 0,588 | 0,23 | 0,30 | KAPLAN TAVŞAN KARTAL MAYMUN SİNCAP ZÜRAFA |keyifliydi ileri seviyeleri için güzel bi kolay level hatta|
+| T06 | uzunluk | Karışık | 17×18 | 306 | 5 | **7** | 30 | 210 | 0,686 | 0,20 | 0,30 | TRAKTÖR GEZEGEN BAKLAVA KELEBEK KARINCA YUMURTA | çok kolay level sadece oyun sonu duruyorsun|
+| T07 | uzunluk | Mutfak | 17×18 | 306 | 5 | **4–7** (Σ31) | 30 | 155 | 0,507 | 0,20 | 0,30 | TAVA KASE KAŞIK ÇATAL BARDAK TENCERE | Orta- kolay|
+| T08 | board | Taşıtlar | **17×15** | 255 | 5 | 5 | 30 | 150 | 0,588 | 0,13 | 0,30 | ARABA VAPUR METRO TAKSİ MOTOR ROKET | Orta- kolay|
+| T09 | board | Kuşlar | **17×21** | 357 | 5 | 5 | 30 | 150 | 0,420 | 0,23 | 0,33 | SERÇE KARGA KUMRU ŞAHİN TAVUK HOROZ | zordu- kesişen birden çok çapraz vardı bu tarz yerleşimlerde oyunu zorlaştırıyor bunu da ileriye dönük konu edinelim|
+| T10 | board | Doğa | **17×26** | 442 | 5 | 5 | 30 | 150 | 0,339 | 0,13 | 0,40 | NEHİR BULUT ÇAYIR ORMAN YAMAÇ SAHİL |zordu baya|
+| T11 | kontrol | Giysi | **20×15** | 300 | 5 | 5 | 30 | 150 | 0,500 | 0,17 | 0,33 | CEKET ÇORAP ŞAPKA KEMER PALTO HIRKA | bu p ye göre zordu yerleşim ya da harflerin küçülmesiyle alakalı olabilir.|
 
 ### Tasarımın içine gömülü karşılaştırmalar
 
