@@ -1,6 +1,6 @@
 # Zorluk Eğrisi v03 — İlk 30 Level, D Hedefli Tier Modeli
 
-- Tarih / sürüm: 2026-11-11 / v03 (taslak; `curve-v02.md`'yi günceller, v02 arşiv)
+- Tarih / sürüm: 2026-11-11 / v03 (taslak; `curve-v02.md`'yi günceller, v02 arşiv). **12 Kasım:** ADR-0008 revizyonuyla hedef D → **D₂ = K·(1+0,5(PER−1))·(1−p)**; tier parametreleri değişmedi, hedef sütunu çevrildi; K/PER/`noDiagCross` kuralları eklendi (`param-tests-v02-results.md`).
 - Alan: level-design (ana sohbet)
 - Problem: v02 p'yi 0,45–0,55'te sabitleyip zorluğu yalnızca yerleşim sayısıyla kuruyordu. T00–T11 oynanışı (`param-tests-v01-results.md`) zorluğun **D = Y × (1 − p)** ile sıralandığını ve p'nin kendisinin hissedildiğini gösterdi → ADR-0008. Eğri D hedefiyle yeniden kuruluyor.
 - İlgili ADR: ADR-0001, ADR-0002, ADR-0004 (can 3 — bu dokümanda fail hedefleri 3 can içindir, ε log'dan gelince kalibre edilir), ADR-0005 (üretim `tools/bake.js`), **ADR-0008**.
@@ -25,26 +25,29 @@
 | Parametre | Değer | Not |
 |---|---|---|
 | `COLS` | 17 | T11 ile doğrulandı |
-| `PER` | 5 | K serisi (`param-tests-v02`) sonucu gelene kadar |
+| `PER` | 5 **sabit** | K serisi sonucu: PER ≤ 3 aynı D'de bir kademe zorlaştırıyor ve chip alanını bozuyor → kaldıraç değil (ADR-0008 rev.) |
+| `K` | F 4 · R 5 · **N/H 6** · S 7 | K 6 taban ("sweet spot", T00); K ≥ 8 ana akışta yok (T13) |
 | Can | 3 (ADR-0004) | Keşif setinde 5'ti; fail hedefleri aşağıda 3 can için |
 | İpucu/booster | ADR-0003 | |
 | Ters | %0 L1–30; L31+ H %20, S %33 | v02 ile aynı (WSE `hwp`) |
 | Çapraz | L1–2 %0, L3+ nominal %50 | v02 ile aynı; **gerçekleşen oran** 0,27–0,43 bandında seed seçilir (`tools/bake.js`) |
-| Çapraz X kesişme | serbest | T09X sonucu gelince karar; zorlaştırdığı doğrulanırsa N/R'de `noDiagCross: true` |
+| Çapraz X kesişme | serbest (`noDiagCross: false`) | T09 ↔ T09X fark üretmedi; kaldıraç değil |
 | Dolgu | `FILL` TR frekans | |
 | Özel harf | ≤ %15 / level (L23 %19 işaretli) | |
 
 ## Tier parametre seti
 
-D = Y × (1 − p). Hedef = ilk-deneme kazanma (3 can; ε log'dan gelince kalibre).
+D₂ = K·(1 + 0,5(PER − 1))·(1 − p) (ADR-0008 rev.); eski D = Y·(1 − p) karşılaştırma için. Hedef = ilk-deneme kazanma (3 can; ε log'dan gelince kalibre).
 
-| Tier | Ad | Grid | Hücre | K | PER | Y | Σ harf | Hedef hücre | p | **D** | Süre (10 + 16K) | Rol |
-|---|---|---|---|---|---|---|---|---|---|---|---|---|
-| **F** | FTUE | 17×12 | 204 | 4 | 5 | 20 | 22 | 110 | 0,54 | **9,2** | 1:14 | L1; çapraz %0 |
-| **R** | Relief | 17×16 | 272 | 5 | 5 | 25 | 26–28 | 130–140 | 0,48–0,51 | **12,1–13,1** | 1:30 | Her H/S'den sonra; L2 |
-| **N** | Normal | 17×18 | 306 | 6 | 5 | 30 | 29–30 | 145–150 | 0,47–0,49 | **15,3–15,8** | 1:46 | Taban (= T00) |
-| **H** | Hard | 17×18 | 306 | 6 | 5 | 30 | 24–26 | 120–130 | 0,39–0,42 | **17,3–18,2** | 1:46 | Kısa kelime (= T04) |
-| **S** | Super hard | 17×21 | 357 | 7 | 5 | 35 | 28–31 | 140–155 | 0,39–0,43 | **19,8–21,3** | 2:02 | L10/20/30 |
+| Tier | Ad | Grid | Hücre | K | PER | Y | Σ harf | Hedef hücre | p | **D₂** | D (eski) | Süre (10 + 16K) | Rol |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| **F** | FTUE | 17×12 | 204 | 4 | 5 | 20 | 22 | 110 | 0,54 | **5,5** | 9,2 | 1:14 | L1; çapraz %0 |
+| **R** | Relief | 17×16 | 272 | 5 | 5 | 25 | 26–28 | 130–140 | 0,48–0,51 | **7,3–7,8** | 12,1–13,1 | 1:30 | Her H/S'den sonra; L2 |
+| **N** | Normal | 17×18 | 306 | 6 | 5 | 30 | 29–30 | 145–150 | 0,47–0,49 | **9,2–9,5** | 15,3–15,8 | 1:46 | Taban (= T00 "keyifli") |
+| **H** | Hard | 17×18 | 306 | 6 | 5 | 30 | 24–26 | 120–130 | 0,39–0,42 | **10,4–11,0** | 17,3–18,2 | 1:46 | Kısa kelime (= T04 "güzel bir zor") |
+| **S** | Super hard | 17×21 | 357 | 7 | 5 | 35 | 28–31 | 140–155 | 0,39–0,43 | **12,0–12,8** | 19,8–21,3 | 2:02 | L10/20/30 (≈ T13 "zor") |
+
+Öznel kademeler (17 test levelı): D₂ ≤ 7,5 kolay · 8,5–9,5 keyifli · 10–11 zor-adil · ≥ 11,5 zor.
 
 N ve H aynı grid, aynı K, aynı Y, aynı süre: fark yalnızca kelime uzunluğu → p → D. Oyuncu "aynı tahta, daha zor" hisseder; UI değişmez.
 
@@ -54,7 +57,7 @@ v02 Seçenek B ritmi (`F R N N H R H R N S | R N H R N H R N N S | R N H R N H R
 
 ## Gerekçe
 
-`param-tests-v01-results.md` §2–4: D sıralaması, p 0,69 çiftinin "çok kolay", T04'ün "güzel bir zor", T11'in sütun etkisi. ADR-0008.
+`param-tests-v01-results.md` §2–4: D sıralaması, p 0,69 çiftinin "çok kolay", T04'ün "güzel bir zor", T11'in sütun etkisi. `param-tests-v02-results.md` §3–5: T14/T15 ile K/PER etkisi, D₂, K 6 taban, PER sabit. ADR-0008.
 
 ## Referans
 
@@ -81,7 +84,8 @@ v02 Seçenek B ritmi (`F R N N H R H R N S | R N H R N H R N N S | R N H R N H R
 
 | Metrik | Hedef | Başarısızlık sinyali |
 |---|---|---|
-| ε·Y (yanlış tap / level) ↔ D | Spearman ≥ 0,8 | < 0,6 → D modeli revize (uzunluk terimi) |
+| Yanlış tap / level ↔ D₂ | Spearman ≥ 0,8 | < 0,6 → D₂ modeli revize (α veya uzunluk terimi) |
+| α (tekrar kopya ağırlığı) | ilk-kopya / tekrar-kopya süre oranından 0,4–0,6 | Dışındaysa D₂ yeniden hesaplanır, tier hedefleri kayar |
 | İlk-deneme kazanma (3 can) | F/R ≥ 0,98, N ≥ 0,93, H ≥ 0,85, S ≥ 0,78 | Tier 5 puan altında → Σ harf +2 (p ↑, D ↓) |
 | Süre (medyan) | N ≈ H 1:30–2:15, S 1:45–2:45 | H > N + %25 → kısa kelime taramayı beklenenden çok uzatıyor |
 | "Sonraki seviye" tıklama | R sonrası ≥ H/S sonrası + 5 puan | Yoksa relief hissi taşınmıyor |
@@ -91,40 +95,40 @@ v02 Seçenek B ritmi (`F R N N H R H R N S | R N H R N H R N N S | R N H R N H R
 
 Grid sütun×satır. p ve D gerçek listelerle (`tools/bake.js check`). Çapraz nominal; L1–2 %0. Ters %0.
 
-| # | Tier | Tema | Grid | K | Uzunluk | Σ | Y | Hedef | p | D | Not |
+| # | Tier | Tema | Grid | K | Uzunluk | Σ | Y | Hedef | p | D₂ | Not |
 |---|---|---|---|---|---|---|---|---|---|---|---|
-| 1 | F | Meyveler | 17×12 | 4 | 5–6 | 22 | 20 | 110 | 0,54 | 9,2 | Sadece sağa/aşağı |
-| 2 | R | Renkler | 17×16 | 5 | 5–7 | 27 | 25 | 135 | 0,50 | 12,6 | Çapraz %0; KIRMIZI (7) |
-| 3 | N | Hayvanlar | 17×18 | 6 | 5 | 30 | 30 | 150 | 0,49 | 15,3 | Çapraz tanıtımı (/ux) |
-| 4 | N | Sofra | 17×18 | 6 | 5 | 30 | 30 | 150 | 0,49 | 15,3 | |
-| 5 | H | Ev | 17×18 | 6 | **4** | 24 | 30 | 120 | 0,39 | 18,2 | = T04 |
-| 6 | R | Okul | 17×16 | 5 | 5–6 | 27 | 25 | 135 | 0,50 | 12,6 | |
-| 7 | H | Vücut | 17×18 | 6 | **4** | 24 | 30 | 120 | 0,39 | 18,2 | |
-| 8 | R | Taşıtlar | 17×16 | 5 | 4–7 | 27 | 25 | 135 | 0,50 | 12,6 | TRAMVAY (7) |
-| 9 | N | Deniz | 17×18 | 6 | 5 | 30 | 30 | 150 | 0,49 | 15,3 | |
-| 10 | **S** | Aile | 17×21 | 7 | **4** | 28 | 35 | 140 | 0,39 | **21,3** | Duvar 1; ort. 2,5 deneme (en yüksek) |
-| 11 | R | Sebzeler | 17×16 | 5 | 5–6 | 27 | 25 | 135 | 0,50 | 12,6 | |
-| 12 | N | Spor | 17×18 | 6 | 4–6 | 29 | 30 | 145 | 0,47 | 15,8 | |
-| 13 | H | Çiftlik | 17×18 | 6 | 4–5 | 26 | 30 | 130 | 0,42 | 17,3 | |
-| 14 | R | Müzik | 17×16 | 5 | 5–6 | 26 | 25 | 130 | 0,48 | 13,1 | |
-| 15 | N | Şehir | 17×18 | 6 | 5 | 30 | 30 | 150 | 0,49 | 15,3 | |
-| 16 | H | Tatil | 17×18 | 6 | 4–5 | 26 | 30 | 130 | 0,42 | 17,3 | |
-| 17 | R | Tatlılar | 17×16 | 5 | 5–7 | 27 | 25 | 135 | 0,50 | 12,6 | BAKLAVA (7) |
-| 18 | N | Kuşlar | 17×18 | 6 | 5 | 30 | 30 | 150 | 0,49 | 15,3 | |
-| 19 | N | Oyuncaklar | 17×18 | 6 | 5 | 30 | 30 | 150 | 0,49 | 15,3 | |
-| 20 | **S** | Mutfak | 17×21 | 7 | 4–5 | 31 | 35 | 155 | 0,43 | **19,8** | Duvar 2 |
-| 21 | R | Uzay | 17×16 | 5 | 4–7 | 27 | 25 | 135 | 0,50 | 12,6 | GEZEGEN (7) |
-| 22 | N | İçecekler | 17×18 | 6 | 4–6 | 29 | 30 | 145 | 0,47 | 15,8 | |
-| 23 | H | Masallar | 17×18 | 6 | 4–5 | 26 | 30 | 130 | 0,42 | 17,3 | Özel harf %19 (işaretli) |
-| 24 | R | Kahvaltı | 17×16 | 5 | 5–7 | 27 | 25 | 135 | 0,50 | 12,6 | YUMURTA (7) |
-| 25 | N | Doğa | 17×18 | 6 | 5 | 30 | 30 | 150 | 0,49 | 15,3 | = T10 listesi, 17×18'de |
-| 26 | H | Giysi | 17×18 | 6 | 4–5 | 26 | 30 | 130 | 0,42 | 17,3 | |
-| 27 | R | Böcekler | 17×16 | 5 | 4–7 | 28 | 25 | 140 | 0,51 | 12,1 | KELEBEK, KARINCA (7) |
-| 28 | N | Banyo | 17×18 | 6 | 4–6 | 30 | 30 | 150 | 0,49 | 15,3 | |
-| 29 | N | Aletler | 17×18 | 6 | 5 | 30 | 30 | 150 | 0,49 | 15,3 | |
-| 30 | **S** | Sınıf | 17×21 | 7 | 4–5 | 31 | 35 | 155 | 0,43 | **19,8** | Duvar 3; L31+ S ters %33 |
+| 1 | F | Meyveler | 17×12 | 4 | 5–6 | 22 | 20 | 110 | 0,54 | 5,5 | Sadece sağa/aşağı |
+| 2 | R | Renkler | 17×16 | 5 | 5–7 | 27 | 25 | 135 | 0,50 | 7,5 | Çapraz %0; KIRMIZI (7) |
+| 3 | N | Hayvanlar | 17×18 | 6 | 5 | 30 | 30 | 150 | 0,49 | 9,2 | Çapraz tanıtımı (/ux) |
+| 4 | N | Sofra | 17×18 | 6 | 5 | 30 | 30 | 150 | 0,49 | 9,2 |  |
+| 5 | H | Ev | 17×18 | 6 | **4** | 24 | 30 | 120 | 0,39 | 11,0 | = T04 |
+| 6 | R | Okul | 17×16 | 5 | 5–6 | 27 | 25 | 135 | 0,50 | 7,5 |  |
+| 7 | H | Vücut | 17×18 | 6 | **4** | 24 | 30 | 120 | 0,39 | 11,0 |  |
+| 8 | R | Taşıtlar | 17×16 | 5 | 4–7 | 27 | 25 | 135 | 0,50 | 7,5 | TRAMVAY (7) |
+| 9 | N | Deniz | 17×18 | 6 | 5 | 30 | 30 | 150 | 0,49 | 9,2 |  |
+| 10 | **S** | Aile | 17×21 | 7 | **4** | 28 | 35 | 140 | 0,39 | **12,8** | Duvar 1; ort. 2,5 deneme (en yüksek) |
+| 11 | R | Sebzeler | 17×16 | 5 | 5–6 | 27 | 25 | 135 | 0,50 | 7,5 |  |
+| 12 | N | Spor | 17×18 | 6 | 4–6 | 29 | 30 | 145 | 0,47 | 9,5 |  |
+| 13 | H | Çiftlik | 17×18 | 6 | 4–5 | 26 | 30 | 130 | 0,42 | 10,4 |  |
+| 14 | R | Müzik | 17×16 | 5 | 5–6 | 26 | 25 | 130 | 0,48 | 7,8 |  |
+| 15 | N | Şehir | 17×18 | 6 | 5 | 30 | 30 | 150 | 0,49 | 9,2 |  |
+| 16 | H | Tatil | 17×18 | 6 | 4–5 | 26 | 30 | 130 | 0,42 | 10,4 |  |
+| 17 | R | Tatlılar | 17×16 | 5 | 5–7 | 27 | 25 | 135 | 0,50 | 7,5 | BAKLAVA (7) |
+| 18 | N | Kuşlar | 17×18 | 6 | 5 | 30 | 30 | 150 | 0,49 | 9,2 |  |
+| 19 | N | Oyuncaklar | 17×18 | 6 | 5 | 30 | 30 | 150 | 0,49 | 9,2 |  |
+| 20 | **S** | Mutfak | 17×21 | 7 | 4–5 | 31 | 35 | 155 | 0,43 | **12,0** | Duvar 2 |
+| 21 | R | Uzay | 17×16 | 5 | 4–7 | 27 | 25 | 135 | 0,50 | 7,5 | GEZEGEN (7) |
+| 22 | N | İçecekler | 17×18 | 6 | 4–6 | 29 | 30 | 145 | 0,47 | 9,5 |  |
+| 23 | H | Masallar | 17×18 | 6 | 4–5 | 26 | 30 | 130 | 0,42 | 10,4 | Özel harf %19 (işaretli) |
+| 24 | R | Kahvaltı | 17×16 | 5 | 5–7 | 27 | 25 | 135 | 0,50 | 7,5 | YUMURTA (7) |
+| 25 | N | Doğa | 17×18 | 6 | 5 | 30 | 30 | 150 | 0,49 | 9,2 | = T10 listesi, 17×18'de |
+| 26 | H | Giysi | 17×18 | 6 | 4–5 | 26 | 30 | 130 | 0,42 | 10,4 |  |
+| 27 | R | Böcekler | 17×16 | 5 | 4–7 | 28 | 25 | 140 | 0,51 | 7,3 | KELEBEK, KARINCA (7) |
+| 28 | N | Banyo | 17×18 | 6 | 4–6 | 30 | 30 | 150 | 0,49 | 9,2 |  |
+| 29 | N | Aletler | 17×18 | 6 | 5 | 30 | 30 | 150 | 0,49 | 9,2 |  |
+| 30 | **S** | Sınıf | 17×21 | 7 | 4–5 | 31 | 35 | 155 | 0,43 | **12,0** | Duvar 3; L31+ S ters %33 |
 
-D dizisi: 9 · 13 · 15 · 15 · **18** · 13 · **18** · 13 · 15 · **21** | 13 · 16 · **17** · 13 · 15 · **17** · 13 · 15 · 15 · **20** | 13 · 16 · **17** · 13 · 15 · **17** · 12 · 15 · 15 · **20**. Toplam Y = 900; süre ≈ 52 dk.
+D₂ dizisi: 5,5 · 7,5 · 9,2 · 9,2 · **11,0** · 7,5 · **11,0** · 7,5 · 9,2 · **12,8** | 7,5 · 9,5 · **10,4** · 7,8 · 9,2 · **10,4** · 7,5 · 9,2 · 9,2 · **12,0** | 7,5 · 9,5 · **10,4** · 7,5 · 9,2 · **10,4** · 7,3 · 9,2 · 9,2 · **12,0**. Toplam Y = 900; süre ≈ 52 dk.
 
 ## Kelime listeleri
 
@@ -167,15 +171,15 @@ Notlar: KABAK ve KAYAK palindrom olduğu için Sebzeler/Spor'dan çıkarıldı. 
 
 ## Fail modeli (3 can)
 
-Yanlış tap ~ Poisson(λ), λ = c · D (c = yanlış tap / D birimi, log'dan). Fail = P(X ≥ 3).
+Yanlış tap ~ Poisson(λ), λ = c · D₂ (c = yanlış tap / D₂ birimi, log'dan). Fail = P(X ≥ 3).
 
-| c | F (9) | R (12,6) | N (15,3) | H (18,2) | S (21,3) |
+| c | F (5,5) | R (7,5) | N (9,2) | H (11,0) | S (12,8) |
 |---|---|---|---|---|---|
-| 0,05 | %1,2 | %2,6 | %4,3 | %6,5 | %9,3 |
-| 0,08 | %3,9 | %8,2 | %12,6 | %18,0 | %24,4 |
-| 0,10 | %6,6 | %13,4 | %19,9 | %27,5 | %35,8 |
+| 0,08 | %1,0 | %2,3 | %3,9 | %6,0 | %8,5 |
+| 0,13 | %3,6 | %7,6 | %12,0 | %17,4 | %23,3 |
+| 0,17 | %6,9 | %13,7 | %20,7 | %28,8 | %37,1 |
 
-c ≈ 0,05–0,08 hedef bandı (N ≤ %13, S ≤ %25 → Amaze GO! normal 0,69 / super hard 0,55 ile karşılaştırılabilir). c > 0,10 çıkarsa S Σ +3 (D 19), H Σ +2 (D 17).
+c ≈ 0,08–0,13 hedef bandı (N ≤ %12, S ≤ %25 → Amaze GO! normal 0,69 / super hard 0,55 ile karşılaştırılabilir). c > 0,17 çıkarsa S Σ +3 (D₂ ≈ 11,5), H Σ +2 (D₂ ≈ 10).
 
 ## Prototip görevi
 

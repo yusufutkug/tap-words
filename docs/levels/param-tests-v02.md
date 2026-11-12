@@ -5,6 +5,7 @@
 - Amaç: v01 sonuçlarının (`param-tests-v01-results.md`) açık bıraktığı iki soru: **(1)** çapraz X kesişmesi zorlaştırıyor mu, **(2)** kelime sayısı K'nin p ve Y'den bağımsız etkisi var mı.
 - Veri: `test-levels.js` (seed 20261105 + indeks·10000 + offset; `tools/bake.js bake`). Prototipte level menüsünün sonunda.
 - Sabitler v01 ile aynı: can 5, ipucu 3, yön bandı (ters 0,13–0,27, çapraz 0,27–0,43), `FILL`, özel harf ≤ %13.
+- **Sonuçlar (12 Kasım):** `param-tests-v02-results.md` → ADR-0008 revizyonu (D₂, K 6 taban, PER sabit, `noDiagCross` kapalı). Level tablosundaki "zorluk" sütunu Utku'nun notlarıdır.
 
 ## Öneri
 
@@ -18,15 +19,15 @@ Beş level: T09X (T09'un aynı kelimelerle kesişmesiz kopyası) ve K serisi T12
 
 ## Level tablosu
 
-| # | Seri | Tema | Grid | Hücre | K | PER | Uzunluk | Y | Hedef | p | D | Ters | Çapraz | X | Kelimeler |
-|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
-| T09 (ref) | board | Kuşlar | 17×21 | 357 | 6 | 5 | 5 | 30 | 150 | 0,42 | 17,4 | 0,23 | 0,33 | **4** | SERÇE KARGA KUMRU ŞAHİN TAVUK HOROZ |
-| **T09X** | kesişme | Kuşlar | 17×21 | 357 | 6 | 5 | 5 | 30 | 150 | 0,42 | 17,4 | 0,20 | 0,33 | **0** | aynı |
-| T00 (ref) | taban | Okul | 17×18 | 306 | 6 | 5 | 5 | 30 | 150 | 0,49 | 15,3 | 0,23 | 0,40 | 0 | KALEM SİLGİ KİTAP TAHTA SINIF ÇANTA |
-| **T12** | K | Meyveler | 17×12 | 204 | **4** | 5 | 5 | 20 | 100 | 0,49 | 10,2 | 0,20 | 0,40 | 0 | KİRAZ KAVUN ARMUT İNCİR |
-| **T13** | K | Şehir | 17×24 | 408 | **8** | 5 | 5 | 40 | 200 | 0,49 | 20,4 | 0,17 | 0,28 | 1 | SOKAK CADDE PAZAR BANKA KÖPRÜ DURAK FIRIN HAMAM |
-| **T14** | K | Yemek | 17×18 | 306 | **10** | **3** | 5 | 30 | 150 | 0,49 | 15,3 | 0,13 | 0,30 | 2 | REÇEL SUCUK SİMİT SOSİS BÖREK SALAM PİLAV ÇORBA HELVA LOKUM |
-| **T15** | K | Karışık | 17×18 | 306 | **15** | **2** | 5 | 30 | 150 | 0,49 | 15,3 | 0,17 | 0,33 | 3 | KALEM BALIK PERDE MARTI LAMBA DOLAP KUMRU HOROZ ROKET METRO TAVUK KARGA YOSUN DALGA SEHPA |
+| # | Seri | Tema | Grid | Hücre | K | PER | Uzunluk | Y | Hedef | p | D | D₂ | Ters | Çapraz | X | Kelimeler | zorluk |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| T09 (ref) | board | Kuşlar | 17×21 | 357 | 6 | 5 | 5 | 30 | 150 | 0,42 | 17,4 | 10,4 | 0,23 | 0,33 | **4** | SERÇE KARGA KUMRU ŞAHİN TAVUK HOROZ | zordu (v01) |
+| **T09X** | kesişme | Kuşlar | 17×21 | 357 | 6 | 5 | 5 | 30 | 150 | 0,42 | 17,4 | 10,4 | 0,20 | 0,33 | **0** | aynı | biraz daha zor, ama çok değil |
+| T00 (ref) | taban | Okul | 17×18 | 306 | 6 | 5 | 5 | 30 | 150 | 0,49 | 15,3 | 9,2 | 0,23 | 0,40 | 0 | KALEM SİLGİ KİTAP TAHTA SINIF ÇANTA | keyifli (v01) |
+| **T12** | K | Meyveler | 17×12 | 204 | **4** | 5 | 5 | 20 | 100 | 0,49 | 10,2 | 6,1 | 0,20 | 0,40 | 0 | KİRAZ KAVUN ARMUT İNCİR | zor değil |
+| **T13** | K | Şehir | 17×24 | 408 | **8** | 5 | 5 | 40 | 200 | 0,49 | 20,4 | 12,2 | 0,17 | 0,28 | 1 | SOKAK CADDE PAZAR BANKA KÖPRÜ DURAK FIRIN HAMAM | zor |
+| **T14** | K | Yemek | 17×18 | 306 | **10** | **3** | 5 | 30 | 150 | 0,49 | 15,3 | 10,2 | 0,13 | 0,30 | 2 | REÇEL SUCUK SİMİT SOSİS BÖREK SALAM PİLAV ÇORBA HELVA LOKUM | zor |
+| **T15** | K | Karışık | 17×18 | 306 | **15** | **2** | 5 | 30 | 150 | 0,49 | 15,3 | 11,5 | 0,17 | 0,33 | 3 | KALEM BALIK PERDE MARTI LAMBA DOLAP KUMRU HOROZ ROKET METRO TAVUK KARGA YOSUN DALGA SEHPA | zor |
 
 Generator: 5 level × 300 üretim, %0 başarısız. T09X `noDiagCross: true` ile runtime `generate()` 30 tahtada X = 0 doğrulandı.
 

@@ -39,4 +39,4 @@ Prototipte ne değişecek (/prototype için görev), hangi dokümanlar güncelle
 | [ADR-0005](ADR-0005-offline-generator.md) | Level üretimi offline, Unity yalnızca pre-baked JSON okur; daily paketi tarih anahtarlı | Kabul |
 | [ADR-0006](ADR-0006-dil.md) | Çıkış TR + EN; altyapı 5 dile hazır | Kabul |
 | [ADR-0007](ADR-0007-cikis-event-seti.md) | Çıkış event seti: Daily Challenge, Daily Goals, Daily Rush (merdiven), coin mini-oyunu, haftalık kavanoz koleksiyonu | Kabul |
-| [ADR-0008](ADR-0008-zorluk-indeksi.md) | Zorluk indeksi D = Y × (1 − p); p kaldıraç, tier'lar D bandıyla; kısa kelime yolu büyük tahtaya tercih | Kabul |
+| [ADR-0008](ADR-0008-zorluk-indeksi.md) | Zorluk indeksi D₂ = K·(1+0,5(PER−1))·(1−p); p kaldıraç, tier'lar D₂ bandıyla; kısa kelime yolu; K 6 taban, PER 5 sabit (rev. 12 Kas) | Kabul |

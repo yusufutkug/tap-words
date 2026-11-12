@@ -73,7 +73,8 @@
 | `meta.targetCells` | int | Σ `cells.length`. |
 | `meta.fillCells` | int | `fill.length`. |
 | `meta.ratio` | float | `targetCells / (cols × rows)` — hedef hücre oranı `p`. |
-| `meta.D` | float | Zorluk indeksi `Y × (1 − p)`, Y = `placements.length` (ADR-0008). Bilgi amaçlı; analitik ve tier doğrulaması için. |
+| `meta.D` | float | İlk zorluk indeksi `Y × (1 − p)`, Y = `placements.length` (ADR-0008 ilk hali). Karşılaştırma için tutulur. |
+| `meta.D2` | float | **Geçerli zorluk indeksi** `K × (1 + 0,5·(per − 1)) × (1 − p)` (ADR-0008 rev. 12 Kas). Tier doğrulaması bununla. |
 | `meta.xCross` | int | Görsel X yapan çapraz yerleşim çifti sayısı. `noDiagCross: true` ise 0. |
 | `meta.reversedShare` | float | Ters yazılı (`W N NW NE`) yerleşim payı. |
 | `meta.diagonalShare` | float | Çapraz yerleşim payı. |

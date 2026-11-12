@@ -26,8 +26,8 @@ Kod sütunu prototip (`index.html`) ve JSON şeması (`level-format.md`) karşı
 
 | # | Parametre | Kod | Sınıf | Zorlaştıran yön | Test setinde | Nerede / nasıl |
 |---|---|---|---|---|---|---|
-| 1 | Unique kelime sayısı | `K` = `words.length` | Hacim | ↑ (chip tarama + Y) | **S = 6** | Utku kararı; chip tek satır sınırının altında. Tek başına etkisi bu sette ölçülmüyor |
-| 2 | Kopya sayısı | `PER` (JSON `per`) | Hacim + Risk | ↓ p düşer, risk ↑; ↑ Y artar, hacim ↑ | **D** | T01 (2), T02 (3), T00 (5), T03 (7) |
+| 1 | Unique kelime sayısı | `K` = `words.length` | **Risk × Hacim (ana)** | ↑ her kelime "ilk kopya" = pahalı arama | **S = 6** v01 → **D** v02 (4/8/10/15) | v02 sonucu: aynı Y ve p'de K 6 → 10/15 bir kademe zorlaştırdı. **K 6 taban** (ADR-0008 rev.); F 4, R 5, S 7; ≥ 8 yok |
+| 2 | Kopya sayısı | `PER` (JSON `per`) | Hacim (hafif) | ↓ tekrar kopya azalır, öğrenme kârı düşer | **D** v01 (2/3/5/7), v02 (3/2, Y sabit) | Tekrar kopya ilk kopyanın ~yarısı iş (α 0,5). **PER 5 sabit; ≤ 3 kaldıraç değil** (chip alanı + Pillar 4). Kelimeye göre değişken kopya gelirse alt sınır 4 |
 | 3 | Kopya dağılımı | — (Netleşenler: kelimeye göre değişken) | Hacim | eşitsiz → chip okuma yükü | **S = eşit** | Her kelime aynı PER. İleride `copies[]` |
 | 4 | Tahta sütunu | `COLS` | Hacim (+ zoom) | ↑ | **S = 17**, T11 kontrol (20) | /ux #11: 17 zoom'suz okunabilir sınır. T11 yalnızca sütun etkisini izole eder |
 | 5 | Tahta satırı | `ROWS` | Hacim | ↑ alan büyür, p düşer | **D** | T08 (15), T00 (18), T09 (21), T10 (26) |
@@ -47,7 +47,8 @@ Kod sütunu prototip (`index.html`) ve JSON şeması (`level-format.md`) karşı
 | 14 | Hedef hücre | \( H = PER \times \sum \text{uzunluk} \) | — | **T** | 60 … 210 |
 | 15 | Hedef hücre oranı | \( p = H / (R \times C) \) | **Risk** (ana) | **T** | 0,196 (T01) … 0,686 (T03, T06) |
 | 16 | Dinamik p (level sonu) | bulunan harfler gidince kalan hedef / kalan hücre | Risk | **Ö** (`wrongAt[]`) | Son yerleşimde p → ~%2–5 her levelda; log yanlış tap'ın hangi aşamada geldiğini kaydeder |
-| 16b | **Zorluk indeksi D** | \( D = Y \times (1 - p) \) | Risk × Hacim | **T** (ADR-0008) | 9,4 (T06) … 19,8 (T10). T00–T11 öznel sıralamasını 12'de 11 açıklıyor (`param-tests-v01-results.md`); tier hedefi artık D ile verilir (`curve-v03.md`) |
+| 16b | Zorluk indeksi D (ilk hal) | \( D = Y \times (1 - p) \) | Risk × Hacim | **T** | 9,4 (T06) … 20,4 (T13). T00–T11'i 12'de 11 açıkladı; T14/T15'i (aynı Y, p; farklı K/PER) açıklayamadı → D₂ |
+| 16c | **Zorluk indeksi D₂** | \( D_2 = K \cdot (1 + 0{,}5\,(PER-1)) \cdot (1-p) \) | Risk × Hacim | **T** (ADR-0008 rev. 12 Kas) | 5,6 (T06) … 12,2 (T13). İlk kopya tam, tekrar kopya yarım iş. 17 levelda 16 sıralıyor (`param-tests-v02-results.md`); tier hedefi D₂ ile (`curve-v03.md`). α = 0,5 log ile kalibre edilecek |
 
 p'nin bağımsız parametre **olmadığı** test tasarımının çekirdeği: K, PER, uzunluk ve tahta boyutundan dördünü seçince p kendiliğinden çıkar. Bu yüzden üç seri aynı p'ye farklı yoldan ulaşan çiftler üretir (bölüm 4).
 
@@ -72,7 +73,7 @@ Bunlar `words[]`'den türetilir ama generator parametresi değildir; listeyi kü
 | 24 | Dolguda özel harf | özel harfli dolgu / tüm dolgu | Risk ↑ (feneri söndürür) | ↑ | **Ö** | %13–21 |
 | 25 | Kopya kümelenmesi | aynı kelimenin kopyaları arası ort. merkez mesafesi / tahta köşegeni | Hacim ↓ (yakın kopyalar bedava bulunur) | ↓ | **Ö** | %30 (T05) … %40 (T04) köşegen — rastgele, kümelenme yok |
 | 26 | Kelime başına yön çeşitliliği | aynı kelimenin kopyaları kaç farklı yönde | Hacim ↑ | ↑ | **—** | Ölçülmedi; rastgele |
-| 26b | Çapraz X kesişmesi | SE ve SW yerleşimlerin hücre paylaşmadan görsel X yaptığı çift sayısı (`meta.xCross`) | Hacim ↑ (okuma) | ↑ | **Ö** v01 (0–4) → **D** v02 (`noDiagCross`, T09 4 ↔ T09X 0) | Generator kuralı yalnızca paralel komşu çaprazı engelliyordu; `noDiagCross` parametresi eklendi (`tools/bake.js`, `index.html`). T06'da 4 kesişme + "çok kolay" → etkisi p'ye bağlı olabilir |
+| 26b | Çapraz X kesişmesi | SE ve SW yerleşimlerin hücre paylaşmadan görsel X yaptığı çift sayısı (`meta.xCross`) | — | — | **D** v02 (T09 4 ↔ T09X 0) → **kaldıraç değil** | T09X "biraz daha zor" çıktı (ters yön, gürültü). `noDiagCross` generator'da duruyor, varsayılan kapalı (ADR-0008 rev.) |
 | 27 | Yakın-kelime tuzağı (near-miss) | hedeften 1 harf farklı dizi sayısı | Risk ↑ | ↑ | **—** | Kaza temizliği yalnızca tam eşleşmeyi siler; near-miss sayılmıyor. Pillar 3 ile gerilimli (`uncertainties.md`) |
 
 ## 3. Taban level ve seri mantığı
@@ -150,7 +151,7 @@ Hangi parametrenin etkisi hangi logdan okunur (`mechanic.md` level sonu logu, `l
 
 ## 5b. v02 seti (2026-11-11): T09X, T12–T15
 
-`param-tests-v02.md`. İlk oynanış sonuçları (`param-tests-v01-results.md`) iki soruyu açtı; v02 onları izole eder:
+`param-tests-v02.md`; sonuçlar `param-tests-v02-results.md`. İlk oynanış sonuçları (`param-tests-v01-results.md`) iki soruyu açtı; v02 onları izole etti — **kesişme: etkisiz; K/PER: aynı Y ve p'de bir kademe → D₂**:
 
 | Level | Oynatılan | Sabit | Soru |
 |---|---|---|---|

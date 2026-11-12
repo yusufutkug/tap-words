@@ -139,18 +139,21 @@ function xCount(G,COLS){ // görsel X kesişme sayısı (merkez doğru parçalar
   return x;
 }
 const sumLen=ws=>ws.reduce((a,w)=>a+[...w].length,0);
-const summary=L=>{const Y=L.per*L.words.length,H=L.per*sumLen(L.words),cells=L.cols*L.rows,p=H/cells;return {Y,H,cells,p,D:Y*(1-p)}};
+// D  = Y·(1−p)                         (ADR-0008 ilk hali; her yerleşim eşit)
+// D2 = K·(1+α·(PER−1))·(1−p), α=0,5    (ADR-0008 revizyon 2026-11-12: ilk kopya pahalı, tekrar kopya yarım)
+const ALPHA=0.5;
+const summary=L=>{const K=L.words.length,Y=L.per*K,H=L.per*sumLen(L.words),cells=L.cols*L.rows,p=H/cells;return {K,Y,H,cells,p,D:Y*(1-p),D2:K*(1+ALPHA*(L.per-1))*(1-p)}};
 
 // ---- modlar ----
 const mode=process.argv[2]||"validate";
 if(mode==="validate"){
   const N=+process.argv[3]||300;
-  console.log("id    grid    per  K   Y   hedef  p     D      fail%  ortAttempt  maxAttempt");
+  console.log("id    grid    per  K   Y   hedef  p     D      D2     fail%  ortAttempt  maxAttempt");
   for(const L of TESTS){
     const rand=mulberry32(1); let fails=0,sum=0,max=0;
     for(let i=0;i<N;i++){const G=generate(L,rand);if(!G){fails++;continue}sum+=G.attempt;max=Math.max(max,G.attempt)}
     const s=summary(L);
-    console.log(`${L.id.padEnd(5)} ${L.cols}×${L.rows}`.padEnd(14)+`${L.per}    ${String(L.words.length).padEnd(3)} ${String(s.Y).padEnd(3)} ${String(s.H).padEnd(6)} ${s.p.toFixed(2)}  ${s.D.toFixed(1).padEnd(6)} ${(100*fails/N).toFixed(1).padStart(5)}  ${(sum/Math.max(1,N-fails)).toFixed(2).padStart(10)}  ${String(max).padStart(10)}`);
+    console.log(`${L.id.padEnd(5)} ${L.cols}×${L.rows}`.padEnd(14)+`${L.per}    ${String(L.words.length).padEnd(3)} ${String(s.Y).padEnd(3)} ${String(s.H).padEnd(6)} ${s.p.toFixed(2)}  ${s.D.toFixed(1).padEnd(6)} ${s.D2.toFixed(1).padEnd(6)} ${(100*fails/N).toFixed(1).padStart(5)}  ${(sum/Math.max(1,N-fails)).toFixed(2).padStart(10)}  ${String(max).padStart(10)}`);
   }
 }else if(mode==="bake"){
   const SEED=20261105;
@@ -165,8 +168,8 @@ if(mode==="validate"){
     out.push({id:L.id,series:L.series,name:L.name,cols:L.cols,rows:L.rows,per:L.per,...(L.noDiagCross?{noDiagCross:true}:{}),words:L.words,
       letters:G.letters.join(""),
       p:G.placements.map(pl=>[pl.word,pl.cells[0],pl.dir[0],pl.dir[1]]),
-      meta:{target,ratio:+(target/(L.cols*L.rows)).toFixed(3),D:+sm.D.toFixed(1),rev:+ds.rev.toFixed(2),diag:+ds.diag.toFixed(2),xCross:x,seed:SEED+i*10000+s}});
-    console.error(`${L.id.padEnd(5)} ${L.cols}×${L.rows} per${L.per} K=${L.words.length} Y=${G.placements.length} hedef=${target} p=${(target/(L.cols*L.rows)).toFixed(3)} D=${sm.D.toFixed(1)} ters=${ds.rev.toFixed(2)} çapraz=${ds.diag.toFixed(2)} X=${x} seedOffset=${s}`);
+      meta:{target,ratio:+(target/(L.cols*L.rows)).toFixed(3),D:+sm.D.toFixed(1),D2:+sm.D2.toFixed(1),rev:+ds.rev.toFixed(2),diag:+ds.diag.toFixed(2),xCross:x,seed:SEED+i*10000+s}});
+    console.error(`${L.id.padEnd(5)} ${L.cols}×${L.rows} per${L.per} K=${L.words.length} Y=${G.placements.length} hedef=${target} p=${(target/(L.cols*L.rows)).toFixed(3)} D=${sm.D.toFixed(1)} D2=${sm.D2.toFixed(1)} ters=${ds.rev.toFixed(2)} çapraz=${ds.diag.toFixed(2)} X=${x} seedOffset=${s}`);
   }
   process.stdout.write(`// Test levelları (parametre keşfi). Üretim: tools/bake.js bake, seed ${SEED}+i·10000+offset, index.html generator'ının kopyası.\n`);
   process.stdout.write(`// Her level kendi cols/rows/per değerini taşır; format letters + p = [kelimeIdx, başlangıçIdx, dr, dc] (levels.js ile aynı).\n`);
@@ -187,7 +190,7 @@ if(mode==="validate"){
     const grid=[];for(let r=0;r<L.rows;r++)grid.push(letters.slice(r*L.cols,(r+1)*L.cols).join(""));
     return {id:L.id,index:51+i,lang:"tr",tier:"test",series:L.series,cols:L.cols,rows:L.rows,per:L.per,lives:5,hints:3,...(L.noDiagCross?{noDiagCross:true}:{}),
       words:L.words,grid,placements,fill,
-      meta:{theme:L.name,targetCells:n-fill.length,fillCells:fill.length,ratio:L.meta.ratio,D:L.meta.D,reversedShare:L.meta.rev,diagonalShare:L.meta.diag,xCross:L.meta.xCross,seed:L.meta.seed}};
+      meta:{theme:L.name,targetCells:n-fill.length,fillCells:fill.length,ratio:L.meta.ratio,D:L.meta.D,D2:L.meta.D2,reversedShare:L.meta.rev,diagonalShare:L.meta.diag,xCross:L.meta.xCross,seed:L.meta.seed}};
   });
   const pkg={format:"tapwords-level/1",package:process.argv[4]||"param-tests",lang:"tr",generatedAt:new Date().toISOString().slice(0,10),
     source:"tools/bake.js bake (seed "+D.seed+")",design:"docs/levels/param-tests-v01.md, param-tests-v02.md",schema:"docs/levels/level-format.md",
@@ -197,13 +200,13 @@ if(mode==="validate"){
 }else if(mode==="check"){
   // lists.json: [{id, cols, rows, per, words[], noDiagCross?}, ...]
   const list=JSON.parse(require("fs").readFileSync(process.argv[3],"utf8")), N=+process.argv[4]||200;
-  console.log("id    grid    per  K   Σharf  Y   p     D      fail%  ortAttempt  not");
+  console.log("id    grid    per  K   Σharf  Y   p     D      D2     fail%  ortAttempt  not");
   for(const L of list){
     const ws=L.words, bad=[];
     for(const w of ws){const r=[...w].reverse().join("");if(w===r)bad.push("palindrom:"+w);for(const v of ws)if(v!==w&&(v.includes(w)||v.includes(r)))bad.push(w+"⊂"+v)}
     const rand=mulberry32(7); let fails=0,sum=0;
     for(let i=0;i<N;i++){const G=generate(L,rand);if(!G){fails++;continue}sum+=G.attempt}
     const s=summary(L);
-    console.log(`${String(L.id).padEnd(5)} ${L.cols}×${L.rows}`.padEnd(14)+`${L.per}    ${String(ws.length).padEnd(3)} ${String(sumLen(ws)).padEnd(6)} ${String(s.Y).padEnd(3)} ${s.p.toFixed(2)}  ${s.D.toFixed(1).padEnd(6)} ${(100*fails/N).toFixed(1).padStart(5)}  ${(sum/Math.max(1,N-fails)).toFixed(2).padStart(10)}  ${bad.join(" ")}`);
+    console.log(`${String(L.id).padEnd(5)} ${L.cols}×${L.rows}`.padEnd(14)+`${L.per}    ${String(ws.length).padEnd(3)} ${String(sumLen(ws)).padEnd(6)} ${String(s.Y).padEnd(3)} ${s.p.toFixed(2)}  ${s.D.toFixed(1).padEnd(6)} ${s.D2.toFixed(1).padEnd(6)} ${(100*fails/N).toFixed(1).padStart(5)}  ${(sum/Math.max(1,N-fails)).toFixed(2).padStart(10)}  ${bad.join(" ")}`);
   }
 }
