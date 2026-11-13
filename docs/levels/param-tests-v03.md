@@ -21,16 +21,16 @@ Dokuz level: yeni gridde taban T00b; dolgu serisi T16–T18 (`fillMode` disjoint
 
 | # | Seri | Tema | Grid | K | PER | Y | Hedef | p | D₂ | Dolgu modu | Dolgu örtüşme | Dolgu özel | Kelime özel | Ters | Çapraz | X | Kelimeler | zorluk |
 |---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
-| **T00b** | taban | Okul | 15×21 | 6 | 5 | 30 | 150 | 0,48 | 9,4 | freq | %72 | %15 | %13 | 0,23 | 0,33 | 4 | KALEM SİLGİ KİTAP TAHTA SINIF ÇANTA | |
-| **T16** | dolgu | Renkler | 15×21 | 6 | 5 | 30 | 150 | 0,48 | 9,4 | **disjoint** | **%0** | %25 | %10 | 0,27 | 0,37 | 3 | PEMBE SİYAH BEYAZ YEŞİL BORDO KIZIL | |
-| **T17** | dolgu | Meslekler | 15×21 | 6 | 5 | 30 | 150 | 0,48 | 9,4 | **target** | **%100** | %16 | %13 | 0,20 | 0,33 | 0 | POLİS ASKER PİLOT TERZİ KASAP MİMAR | |
-| **T18** | dolgu | Sofra | 15×21 | 6 | 5 | 30 | 150 | 0,48 | 9,4 | **bigram** | **%100** | %9 | %13 | 0,13 | 0,30 | 1 | EKMEK PİLAV ÇORBA KAHVE ŞEKER LİMON | |
-| **T19** | ters | Hayvanlar | 15×21 | 6 | 5 | 30 | 150 | 0,48 | 9,4 | freq | %70 | %15 | %10 | **0,00** | 0,30 | 3 | ASLAN YILAN KOYUN GEYİK ZEBRA TİLKİ | |
-| **T20** | ters | Şehir | 15×21 | 6 | 5 | 30 | 150 | 0,48 | 9,4 | freq | %61 | %14 | %0 | **0,50** | 0,30 | 2 | SOKAK CADDE PAZAR BANKA DURAK FIRIN | |
-| **T21** | özel | Mobilya | 15×21 | 6 | 5 | 30 | 150 | 0,48 | 9,4 | freq | %65 | %13 | **%0** | 0,23 | 0,30 | 1 | PERDE LAMBA DOLAP TABAK SEHPA RANZA | |
-| **T22** | özel | Karışık | 15×21 | 6 | 5 | 30 | 150 | 0,48 | 9,4 | freq | %58 | %19 | **%40** | 0,27 | 0,30 | 2 | ÇİÇEK GÜNEŞ KÖPRÜ ÖRDEK YÜZÜK ÇİLEK | |
+| **T00b** | taban | Okul | 15×21 | 6 | 5 | 30 | 150 | 0,48 | 9,4 | freq | %72 | %15 | %13 | 0,23 | 0,33 | 4 | KALEM SİLGİ KİTAP TAHTA SINIF ÇANTA | süre 3:32 |
+| **T16** | dolgu | Renkler | 15×21 | 6 | 5 | 30 | 150 | 0,48 | 9,4 | **disjoint** | **%0** | %25 | %10 | 0,27 | 0,37 | 3 | PEMBE SİYAH BEYAZ YEŞİL BORDO KIZIL | süre 1:47 |
+| **T17** | dolgu | Meslekler | 15×21 | 6 | 5 | 30 | 150 | 0,48 | 9,4 | **target** | **%100** | %16 | %13 | 0,20 | 0,33 | 0 | POLİS ASKER PİLOT TERZİ KASAP MİMAR | süre 3:16 |
+| **T18** | dolgu | Sofra | 15×21 | 6 | 5 | 30 | 150 | 0,48 | 9,4 | **bigram** | **%100** | %9 | %13 | 0,13 | 0,30 | 1 | EKMEK PİLAV ÇORBA KAHVE ŞEKER LİMON | süre 4:03 |
+| **T19** | ters | Hayvanlar | 15×21 | 6 | 5 | 30 | 150 | 0,48 | 9,4 | freq | %70 | %15 | %10 | **0,00** | 0,30 | 3 | ASLAN YILAN KOYUN GEYİK ZEBRA TİLKİ | süre 3:51 |
+| **T20** | ters | Şehir | 15×21 | 6 | 5 | 30 | 150 | 0,48 | 9,4 | freq | %61 | %14 | %0 | **0,50** | 0,30 | 2 | SOKAK CADDE PAZAR BANKA DURAK FIRIN | süre 4:02 |
+| **T21** | özel | Mobilya | 15×21 | 6 | 5 | 30 | 150 | 0,48 | 9,4 | freq | %65 | %13 | **%0** | 0,23 | 0,30 | 1 | PERDE LAMBA DOLAP TABAK SEHPA RANZA | süre 2:02 |
+| **T22** | özel | Karışık | 15×21 | 6 | 5 | 30 | 150 | 0,48 | 9,4 | freq | %58 | %19 | **%40** | 0,27 | 0,30 | 2 | ÇİÇEK GÜNEŞ KÖPRÜ ÖRDEK YÜZÜK ÇİLEK | süre 1:57 |
 
-Generator: 9 level × 200 üretim, %0 başarısız; `target` ve `bigram` modlarında kaza temizliği aynı alfabeden harf seçtiği için "düzeltilemez" oranı 0. Tüm listeler palindrom/alt-dize kontrolünden geçti. "zorluk" sütunu oynayınca doldurulur.
+Generator: 9 level × 200 üretim, %0 başarısız; `target` ve `bigram` modlarında kaza temizliği aynı alfabeden harf seçtiği için "düzeltilemez" oranı 0. Tüm listeler palindrom/alt-dize kontrolünden geçti. "zorluk" sütunu: Utku'nun oynanış süreleri (13 Kas, tek oynanış, sıra T00b → T22). Değerlendirme `param-tests-v03-results.md`.
 
 Not: T20 (Şehir) listesinde özel harf %0 — T21 ile çakışıyor; ters serisi için T21'i ikinci "özel %0" veri noktası olarak kullanma, T20'yi yalnızca T00b/T19 ile karşılaştır.
 
