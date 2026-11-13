@@ -4,7 +4,7 @@
 - Alan: level-design (ana sohbet)
 - Amaç: oyuncunun L1'den itibaren geçtiği level dizisinin **nasıl üretildiğini** tanımlamak — elle yazılmış bir level tablosu değil, Unity ekibine ve offline generator'a verilen **kural seti**. curve-v03'ün 30 levelı bu kuralların ilk çıktısı olur.
 - Kaynak: `curve-v03.md` (tier parametreleri, D₂ bantları, 30 liste), `param-tests-v03-results.md` (dolgu modu ve özel harf kaldıraçları, ters bandı kalktı), `docs/references/amaze-go.md#apk-analizi` (tier ritmi + havuz mimarisi), ADR-0004 (3 can), ADR-0008, ADR-0009.
-- Veri: `tools/funnel-v01.json` (kaynak: dizi + tier seti + havuz) → `node tools/bake.js funnel` → `funnel-levels.js` (prototip ana akışı, L1–30) ve `levels/funnel-v01.json` (Unity paketi, `tapwords-level/1`).
+- Veri: `tools/funnel-<x>.json` (dizi + tier seti; x = a/b/c) + `tools/funnel-pool.json` (ortak havuz, 116 liste) → `node tools/bake.js funnel` → `funnel-<x>-levels.js` (prototip, 100 level) ve `levels/funnel-<x>.json` (Unity paketi, `tapwords-level/1`). Üç varyant: `funnels-v01.md`. (İlk 30 levellık `funnel-v01.json` çıktısı 13 Kas'ta bunlarla değiştirildi; dizi A'da aynen yaşıyor.)
 - Karar: ADR-0010 (taslak; prototip playtest'inden sonra Kabul).
 
 ## Öneri
@@ -28,7 +28,7 @@ Funnel dört bileşenden oluşur; level numarasına tek tek içerik yazılmaz:
 
 Sabitler: PER 5; ters yazım 0,20 (band yok — `param-tests-v03-results.md#3`); çapraz nominal %50 (gerçekleşen 0,27–0,43 bandı, seed seçimi); X kesişme serbest; ipucu/booster ADR-0003.
 
-v03'ten gelen iki değişiklik curve-v03'e göre: F'de `disjoint` dolgu (tahta kendini okutur, −50 % süre), S'de `bigram` dolgu (+15–24 %). Özel harf sınırı H/S'de %10'a çekildi (fener etkisi, −45 %); mevcut havuzda Çiftlik %15 ve Masallar %19 bunun üstünde — kürasyon bekliyor, playtest'te işaretli.
+v03'ten gelen iki değişiklik curve-v03'e göre: F'de `disjoint` dolgu (tahta kendini okutur, −50 % süre), S'de `bigram` dolgu (+15–24 %). Özel harf sınırı H/S'de %10'a çekildi (fener etkisi, −45 %); Çiftlik, Masallar ve Tatil listeleri buna göre yeniden kürate edildi (13 Kas, `funnel-pool.json`).
 
 ### Kaldıraçların giriş sırası
 
@@ -47,8 +47,8 @@ Bölümlere göre ince ayar (öneri, playtest sonrası): L1–50 tier bantların
 
 - Liste tier'a göre etiketlenir: uzunluk ve Σ harf bandı yukarıdaki tablo; palindrom yok; alt dize yok (`mechanic.md`); özel harf sınırı tier'a göre.
 - **Tekrar:** aynı kelime en az 20 level arayla; aynı tema farklı listeyle ≥ 30 level arayla kullanılabilir.
-- **Mevcut dolum:** 30 liste (F 1 · R 9 · N 11 · H 6 · S 3) = tam 30 level.
-- **Soft launch hedefi 100 level:** dizi başına F 1 · R 30 · N 40 · H 20 · S 10 → **70 yeni liste** (R 21, N 29, H 14, S 7). Kürasyon /level-design; en dar yer H/S (4–5 harfli temalar).
+- **Mevcut dolum (13 Kas):** `tools/funnel-pool.json` — 116 liste (F 3 · R 32 · N 41 · H 23 · S 17), kelimeler havuz genelinde tekil; 100 levellık tek funnel için yeterli (A: R 30/32, N 39/41). Çiftlik / Masallar / Tatil %10 sınırına göre yeniden kürate edildi.
+- Havuz her funnel'da `poolSeed` ile karıştırılır; generator listeleri ve diziyi doğrular (bant, özel harf, palindrom/alt dize, kelime tekrarı, ≥ 20 / ≥ 30 level mesafesi) — hata varsa çıktı üretilmez.
 - Havuz bittiğinde generator hata verir (`L n: X havuzu bitti`); Unity'ye sessiz tekrar gitmez.
 
 ### Özel havuzlar (Amaze GO! kalıbı; bu sürümde yalnızca FTUE)
@@ -106,6 +106,6 @@ Soft launch (Unity, analytics): level başına ilk-deneme kazanma ve "level baş
 
 ## Prototip / Unity
 
-- Prototip ana akışı artık `funnel-levels.js` (L1–30, can 3). Eski 50 level menüde **Arşiv** (20×25, can 5); test levelları ayrı bölüm. Level listesinde tier ve D₂ görünür.
+- Prototip ana akışı `funnel-<x>-levels.js` (100 level, can 3; `?funnel=a|b|c`, varsayılan a). Eski 50 level menüde **Arşiv** (20×25, can 5); test levelları ayrı bölüm. Level listesinde tier, dolgu modu (freq dışı) ve D₂ görünür.
 - Yeni level alanları: `tier`, `lives`, `diag` (JSON `diagonalWeight`), `fillMode`, `rev` (`reversedWeight`) — `level-format.md`.
-- Unity: funnel mantığı offline'dadır; paket (`levels/funnel-v01.json`) sıralı level listesi + `sequence` alanı taşır. Runtime'da tier seçimi yok; ComeBack gelirse paket başına R varyantı eklenir (ADR-0005 ile uyumlu).
+- Unity: funnel mantığı offline'dadır; paket (`levels/funnel-a.json`, `-b`, `-c`) sıralı level listesi + `funnel`, `sequence`, `tiers` alanları taşır. Runtime'da tier seçimi yok; ComeBack gelirse paket başına R varyantı eklenir (ADR-0005 ile uyumlu).

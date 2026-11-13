@@ -22,7 +22,7 @@ Tarih: 2026-10-26 · Durum: Utku ile üzerinden geçiliyor. Karar verilen satır
 - **Çıkış event seti:** Daily Challenge, Daily Goals, Daily Rush (3 aşamalı merdiven, gün sonu sıfırlanır), coin mini-oyunu, haftalık kavanoz koleksiyonu (kelime bulununca +1, obje kalan kelimeye geçer, sınır yok) → ADR-0007.
 - **Backend yok;** gerekirse bot/yalancı oyuncu kurgusu kabul. Bot turnuvası soft launch sonrası.
 - **SDK:** Atiba. **Congrats/motivation katmanı** isteniyor, detayı sonra.
-- **Funnel:** Amaze GO! modeli → ADR-0010 (taslak; playtest sonrası Kabul). **Main menu art direction:** karar bekliyor (K1, `docs/planning/execution-plan-v01.md`).
+- **Funnel:** Amaze GO! modeli → ADR-0010 (taslak; playtest sonrası Kabul). **Dizi seçimi açık:** A Ritim (kontrol) / B Kademeli / C Dalgalı — 100'er level, `docs/levels/funnels-v01.md`; prototipte `?funnel=a|b|c`. **Main menu art direction:** karar bekliyor (K1, `docs/planning/execution-plan-v01.md`).
 
 ## Açık belirsizlikler
 

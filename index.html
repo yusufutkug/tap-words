@@ -88,6 +88,7 @@ button:focus-visible{outline:2px solid var(--brown-x);outline-offset:2px}
 .levels button{padding:8px 14px;font-size:.9rem;border-radius:999px;background:var(--beige);color:var(--fg)}
 .levels button.on{background:var(--brown);color:#fff}
 .levels h4{flex-basis:100%;margin:8px 0 0;font-size:.8rem;color:var(--brown-x);opacity:.8}
+.levels h4 a{color:var(--brown-x);text-decoration:underline}
 .toggle{display:inline-flex;align-items:center;gap:10px;font-size:.9rem;cursor:pointer;user-select:none}
 .toggle input{position:absolute;opacity:0;width:0;height:0}
 .toggle .tr{width:40px;height:22px;border-radius:999px;background:var(--beige-d);position:relative;transition:background .2s}
@@ -126,12 +127,18 @@ button:focus-visible{outline:2px solid var(--brown-x);outline-offset:2px}
 </div>
 
 <script src="levels.js"></script>
-<script src="funnel-levels.js"></script>
+<script>
+// Funnel seçimi: ?funnel=a|b|c (docs/levels/funnels-v01.md). Son seçim localStorage "ka-funnel"; varsayılan a. Dosya: funnel-<id>-levels.js
+const FUNNELS={a:"Ritim",b:"Kademeli",c:"Dalgalı"};
+let FUNNEL_ID=new URLSearchParams(location.search).get("funnel"); try{if(!FUNNELS[FUNNEL_ID])FUNNEL_ID=localStorage.getItem("ka-funnel");if(FUNNELS[FUNNEL_ID])localStorage.setItem("ka-funnel",FUNNEL_ID)}catch(e){}
+if(!FUNNELS[FUNNEL_ID])FUNNEL_ID="a";
+document.write(`<script src="funnel-${FUNNEL_ID}-levels.js"><\/script>`);
+</script>
 <script src="test-levels.js"></script>
 <script>
 // Board parameters are per level: LEVELS[i].cols/rows/per/lives override these defaults (set in newGame).
 let COLS=20, ROWS=25, PER=5, LIVES=5; const DEF={cols:20,rows:25,per:5,lives:5};
-// Ana akış: funnel-levels.js (docs/levels/funnel-v01.md; tier dizisi + tier parametre seti + tema havuzu, can 3). Yoksa eski 50 level ana akış olur.
+// Ana akış: funnel-<id>-levels.js (docs/levels/funnel-v01.md modeli, docs/levels/funnels-v01.md A/B/C; tier dizisi + tier parametre seti + tema havuzu, can 3). Yoksa eski 50 level ana akış olur.
 const LEVELS=(window.FUNNEL_DATA?.levels??[]).map(f=>({name:f.name,words:f.words,cols:f.cols,rows:f.rows,per:f.per,lives:f.lives,fillMode:f.fillMode,rev:f.rev,diag:f.diag,tier:f.tier,funnel:f}));
 // Arşiv: 50 temalı level, 10 kelime (4–8 harf), 20×25, PER 5, can 5 (levels.js pişmiş tahtalar). Funnel varsa menüde "Arşiv" olarak listelenir.
 const ARCHIVE=[
@@ -309,7 +316,7 @@ function generate(){
   }
   throw new Error("Board could not be generated");
 }
-// Pre-baked tahta (funnel-levels.js / levels.js / test-levels.js; ADR-0005). Yoksa veya boyut uymuyorsa runtime generate().
+// Pre-baked tahta (funnel-<id>-levels.js / levels.js / test-levels.js; ADR-0005). Yoksa veya boyut uymuyorsa runtime generate().
 function baked(lv){
   const E=LEVELS[lv], T=E.test||E.funnel, D=T?null:window.LEVEL_DATA, L=T??(E.arch!==undefined?D?.levels?.[E.arch]:null);
   const cols=T?T.cols:D?.cols, rows=T?T.rows:D?.rows;
@@ -332,7 +339,7 @@ let scale=1, tx=0, ty=0, base=20, PAD=16, minScale=1; // base = unscaled cell px
 
 function newGame(state,lv){
   if(lv!==undefined)level=lv; if(state&&state.level!==undefined)level=state.level;
-  try{localStorage.setItem("ka-level",level)}catch(e){}
+  try{localStorage.setItem("ka-level-"+FUNNEL_ID,level)}catch(e){}
   const L=LEVELS[level]; WORDS=L.words;
   COLS=L.cols??DEF.cols; ROWS=L.rows??DEF.rows; PER=L.per??DEF.per; LIVES=L.lives??DEF.lives; NOX=!!L.noDiagCross; REV=L.rev; DIAG=L.diag; FILLMODE=L.fillMode??"freq";
   renderLevels();
@@ -346,9 +353,10 @@ function newGame(state,lv){
 function renderLevels(){
   $("lvlNum").textContent=level+1;
   $("theme").textContent=LEVELS[level].name.toLocaleUpperCase("tr");
-  const label=(l,i)=>l.test?`${l.name} · ${l.cols}×${l.rows} · ×${l.per} · ${l.test.series}`:l.funnel?`${i+1} · ${l.name} · ${l.tier} · D₂ ${l.funnel.meta.D2}`:`${l.arch!==undefined&&FUNNEL_N?"Arşiv "+(l.arch+1):i+1} · ${l.name}`;
+  const label=(l,i)=>l.test?`${l.name} · ${l.cols}×${l.rows} · ×${l.per} · ${l.test.series}`:l.funnel?`${i+1} · ${l.name} · ${window.FUNNEL_DATA?.tiers?.[l.tier]?.label??l.tier}${l.fillMode&&l.fillMode!=="freq"?" "+l.fillMode:""} · D₂ ${l.funnel.meta.D2}`:`${l.arch!==undefined&&FUNNEL_N?"Arşiv "+(l.arch+1):i+1} · ${l.name}`;
   const sep=i=>(FUNNEL_N&&i===FUNNEL_N)?`<h4>Arşiv (20×25, can 5)</h4>`:(i===BASE_N&&BASE_N<LEVELS.length)?`<h4>Parametre testleri</h4>`:"";
-  $("levels").innerHTML=LEVELS.map((l,i)=>sep(i)+`<button class="${i===level?"on":""}" data-lv="${i}">${label(l,i)}</button>`).join("");
+  const sw=FUNNEL_N?`<h4>Funnel: ${Object.entries(FUNNELS).map(([k,v])=>k===FUNNEL_ID?`<b>${k.toUpperCase()} ${v}</b>`:`<a href="?funnel=${k}">${k.toUpperCase()} ${v}</a>`).join(" · ")} · can 3</h4>`:"";
+  $("levels").innerHTML=sw+LEVELS.map((l,i)=>sep(i)+`<button class="${i===level?"on":""}" data-lv="${i}">${label(l,i)}</button>`).join("");
   $("levels").querySelectorAll("button").forEach(b=>b.onclick=()=>{closeMenu();newGame(null,+b.dataset.lv)});
 }
 function renderWords(){
@@ -499,7 +507,7 @@ function finish(win){
   over=true; renderHint();
   const n=found.filter(Boolean).length;
   const ms=Date.now()-startedAt, sec=Math.round(ms/1000), dur=`${Math.floor(sec/60)}:${String(sec%60).padStart(2,"0")}`;
-  logLevel({level:level+1,name:LEVELS[level].name,tier:LEVELS[level].tier??(LEVELS[level].test?"test":"archive"),D2:LEVELS[level].funnel?.meta.D2??LEVELS[level].test?.meta.D2,lives:LIVES,cols:COLS,rows:ROWS,per:PER,fillMode:FILLMODE,rev:REV??0.2,diag:DIAG,words:WORDS.length,placements:found.length,found:n,ms,wrongTaps,wrongAt:[...wrongAt],hintsUsed:MAXH-hints,result:win?"win":"fail",at:new Date().toISOString()});
+  logLevel({funnel:LEVELS[level].funnel?FUNNEL_ID:undefined,level:level+1,name:LEVELS[level].name,tier:LEVELS[level].tier??(LEVELS[level].test?"test":"archive"),D2:LEVELS[level].funnel?.meta.D2??LEVELS[level].test?.meta.D2,lives:LIVES,cols:COLS,rows:ROWS,per:PER,fillMode:FILLMODE,rev:REV??0.2,diag:DIAG,words:WORDS.length,placements:found.length,found:n,ms,wrongTaps,wrongAt:[...wrongAt],hintsUsed:MAXH-hints,result:win?"win":"fail",at:new Date().toISOString()});
   const d=document.createElement("div");d.className="overlay";
   d.innerHTML=`<div class="card"><h2>${win?"Hepsini buldun!":"Canların bitti"}</h2><p>${n} / ${found.length} kelime bulundu${win?`, ${lives} can kaldı`:""}.</p><p>Süre: <b>${dur}</b> · Yanlış: <b>${wrongTaps}</b> · İpucu: <b>${MAXH-hints}</b></p>${win&&level<LEVELS.length-1?`<button id="next">Sonraki seviye</button>`:""}<button id="again">${win&&level===LEVELS.length-1?"Baştan başla":"Tekrar oyna"}</button></div>`;
   vp.appendChild(d);
@@ -543,7 +551,7 @@ ct.onchange=()=>{
 
 // ---- hot update support ----
 window.claude?.hot?.snapshot?.(()=>({G,found,lives,level,hints,startedAt,wrongTaps,wrongAt}));
-let savedLv=0; try{savedLv=Math.min(LEVELS.length-1,Math.max(0,+localStorage.getItem("ka-level")||0))}catch(e){}
+let savedLv=0; try{savedLv=Math.min(LEVELS.length-1,Math.max(0,+localStorage.getItem("ka-level-"+FUNNEL_ID)||0))}catch(e){}
 const dims=lv=>{const L=LEVELS[lv]||{};return (L.cols??DEF.cols)*(L.rows??DEF.rows)};
 const start=d=>d&&d.G&&d.G.letters&&d.G.letters.length===dims(d.level??0)?newGame(d):newGame(null,savedLv);
 window.claude?.hot?.ready?window.claude.hot.ready(start):start(window.claude?.hot?.data??{});

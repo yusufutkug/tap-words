@@ -1,0 +1,29 @@
+{
+  "$comment": "Funnel B — Kademeli. Yumuşak ilk 20 (ilk H L10, ilk S L20), orta 30 Ritim, L51+ sertleşir: 10'luk sette 2 S ve H'ler bigram dolgulu (tier B = H + bigram, havuz H). docs/levels/funnels-v01.md",
+  "id": "b",
+  "name": "Kademeli",
+  "seed": 20261114,
+  "poolSeed": 2,
+  "count": 100,
+  "pool": "funnel-pool.json",
+  "sequence": [
+    "FRRNRNNRNH",
+    "RNNHRNHRNS",
+    "RNHRNHRNNS", "RNHRNHRNNS", "RNHRNHRNNS",
+    "NBRNBRNSNS", "NBRNBRNSNS", "NBRNBRNSNS",
+    "NBRNSBRNBS", "NBRNSBRNBS"
+  ],
+  "tiers": {
+    "F": { "cols": 12, "rows": 17, "per": 5, "lives": 3, "fillMode": "disjoint" },
+    "R": { "cols": 14, "rows": 19, "per": 5, "lives": 3, "fillMode": "freq" },
+    "N": { "cols": 15, "rows": 21, "per": 5, "lives": 3, "fillMode": "freq" },
+    "H": { "cols": 15, "rows": 21, "per": 5, "lives": 3, "fillMode": "freq" },
+    "B": { "cols": 15, "rows": 21, "per": 5, "lives": 3, "fillMode": "bigram", "pool": "H", "label": "H+" },
+    "S": { "cols": 16, "rows": 23, "per": 5, "lives": 3, "fillMode": "bigram" }
+  },
+  "overrides": {
+    "1": { "diag": 0, "rev": 0 },
+    "2": { "diag": 0 },
+    "3": { "diag": 0 }
+  }
+}

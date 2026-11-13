@@ -231,14 +231,36 @@ if(mode==="validate"){
   process.stdout.write("window.TEST_LEVEL_DATA="+JSON.stringify({seed:SEED,levels:out})+";\n");
 }else if(mode==="funnel"){
   // Amaze GO! modeli (docs/levels/funnel-v01.md): level numarası → tier (periyodik dizi), tier → parametre seti, kelime listesi tier havuzundan sırayla.
-  // Girdi: tools/funnel-v01.json {seed, sequence:["FRNNHRHRNS","RNHRNHRNNS"...] (ilk eleman bir kez, sonrakiler döngü), tiers:{F:{cols,rows,per,lives,fillMode,...}}, overrides:{"1":{diag:0,rev:0}}, pool:{F:[{theme,words}],...}}
-  const F=JSON.parse(require("fs").readFileSync(process.argv[3]||"tools/funnel-v01.json","utf8"));
-  const count=+process.argv[4]||Object.values(F.pool).reduce((s,a)=>s+a.length,0);
-  const seqAt=n=>{const [first,...loop]=F.sequence;if(n<=first.length)return first[n-1];const i=(n-first.length-1)%loop.join("").length;return loop.join("")[i]};
-  const used=Object.fromEntries(Object.keys(F.pool).map(k=>[k,0])), out=[];
+  // Girdi: tools/funnel-<x>.json {id, name, seed, poolSeed?, count?, sequence:["FRNNHRHRNS","RNHRNHRNNS"...] (ilk eleman bir kez, sonrakiler döngü), tiers:{F:{cols,rows,per,lives,fillMode,...}}, overrides:{"1":{diag:0,rev:0}}, pool:{F:[{theme,words}],...}}
+  //   pool bir dosya adı da olabilir (tools/funnel-pool.json; paylaşılan havuz). poolSeed verilirse her tier havuzu o seed'le karıştırılır (funnel'lar arası çeşitlilik).
+  //   tiers[X].pool: bu tier'ın çektiği havuz anahtarı (ör. "B": H parametreleri + bigram, havuz "H"). count: üretilecek level sayısı (ops.; argv[4] öncelikli).
+  const fs_=require("fs"), path_=require("path"), src=process.argv[3]||"tools/funnel-a.json";
+  const F=JSON.parse(fs_.readFileSync(src,"utf8"));
+  const POOL=typeof F.pool==="string"?JSON.parse(fs_.readFileSync(path_.join(path_.dirname(src),F.pool),"utf8")):F.pool;
+  const pool={};for(const k of Object.keys(POOL)){if(k.startsWith("$"))continue;const a=[...POOL[k]];
+    if(F.poolSeed!==undefined){const r=mulberry32(F.poolSeed*7919+k.charCodeAt(0));for(let i=a.length-1;i>0;i--){const j=Math.floor(r()*(i+1));[a[i],a[j]]=[a[j],a[i]]}}
+    pool[k]=a}
+  // --- havuz doğrulaması: palindrom, alt dize (ters dahil), kelime sayısı, uzunluk ve Σ bandı, özel harf sınırı, havuz genelinde kelime tekilliği ---
+  const BANDS={F:{k:4,len:[5,6],sum:[21,23],special:1},R:{k:5,len:[4,7],sum:[26,28],special:0.15},N:{k:6,len:[4,6],sum:[29,30],special:0.134},H:{k:6,len:[4,5],sum:[24,26],special:0.10},S:{k:7,len:[4,5],sum:[28,31],special:0.10}};
+  const errs=[], seen=new Map();
+  for(const k of Object.keys(pool))for(const it of pool[k]){const B=BANDS[k],ws=it.words,tag=`${k}/${it.theme}`;
+    if(B){if(ws.length!==B.k)errs.push(`${tag}: ${ws.length} kelime (beklenen ${B.k})`);
+      const S=sumLen(ws);if(S<B.sum[0]||S>B.sum[1])errs.push(`${tag}: Σ ${S} (bant ${B.sum})`);
+      const sp=[...ws.join("")].filter(ch=>SPECIAL.has(ch)).length/sumLen(ws);if(sp>B.special+1e-9)errs.push(`${tag}: özel %${(sp*100).toFixed(0)} (≤ %${B.special*100})`);
+      for(const w of ws){const L=[...w].length;if(L<B.len[0]||L>B.len[1])errs.push(`${tag}: ${w} ${L} harf (bant ${B.len})`)}}
+    for(const w of ws){const r=[...w].reverse().join("");if(w===r)errs.push(`${tag}: ${w} palindrom`);
+      for(const v of ws)if(v!==w&&(v.includes(w)||v.includes(r)))errs.push(`${tag}: ${w} ⊂ ${v}`);
+      if(seen.has(w))errs.push(`havuz: ${w} tekrar (${seen.get(w)} ve ${tag})`);else seen.set(w,tag)}}
+  if(errs.length){console.error(errs.join("\n"));throw new Error(errs.length+" havuz hatası")}
+  const seqStr=F.sequence.join(""), count=+process.argv[4]||F.count||seqStr.length;
+  const seqAt=n=>{if(seqStr.length>=count)return seqStr[n-1];const [first,...loop]=F.sequence;if(n<=first.length)return first[n-1];const i=(n-first.length-1)%loop.join("").length;return loop.join("")[i]};
+  const used=Object.fromEntries(Object.keys(pool).map(k=>[k,0])), out=[], wordAt=new Map(), themeAt=new Map(), seqErrs=[];
   for(let n=1;n<=count;n++){
-    const tier=seqAt(n), T=F.tiers[tier], item=F.pool[tier][used[tier]++];
-    if(!item)throw new Error(`L${n}: ${tier} havuzu bitti (${used[tier]-1})`);
+    const tier=seqAt(n), T=F.tiers[tier]; if(!T)throw new Error(`L${n}: tier ${tier} tanımsız`);
+    const pk=T.pool||tier, item=pool[pk][used[pk]++];
+    if(!item)throw new Error(`L${n}: ${pk} havuzu bitti (${used[pk]-1})`);
+    for(const w of item.words){if(wordAt.has(w)&&n-wordAt.get(w)<20)seqErrs.push(`L${n} ${w}: L${wordAt.get(w)}'de de var (< 20 level)`);wordAt.set(w,n)}
+    if(themeAt.has(item.theme)&&n-themeAt.get(item.theme)<30)seqErrs.push(`L${n} ${item.theme}: L${themeAt.get(item.theme)}'de de var (< 30 level)`);themeAt.set(item.theme,n);
     const L={id:"L"+n,tier,name:item.theme,words:item.words,cols:T.cols,rows:T.rows,per:T.per,lives:T.lives??3,
       ...(T.fillMode?{fillMode:T.fillMode}:{}),...(T.diag!==undefined?{diag:T.diag}:{}),...(T.rev!==undefined?{rev:T.rev}:{}),...(F.overrides?.[n]||{})};
     const BAND=G=>{const d=dirStats(G);const dOK=L.diag===0?d.diag===0:(d.diag>=0.27&&d.diag<=0.43);const r=L.rev??0.2;return dOK&&Math.abs(d.rev-r)<=0.07};
@@ -250,10 +272,12 @@ if(mode==="validate"){
     out.push({id,...rest,letters:G.letters.join(""),p:G.placements.map(pl=>[pl.word,pl.cells[0],pl.dir[0],pl.dir[1]]),
       meta:{target,ratio:+(target/(L.cols*L.rows)).toFixed(3),D:+sm.D.toFixed(1),D2:+sm.D2.toFixed(1),rev:+ds.rev.toFixed(2),diag:+ds.diag.toFixed(2),xCross:xCount(G,L.cols),
         fillOverlap:+fs.overlap.toFixed(2),fillSpecial:+fs.special.toFixed(2),wordSpecial:+wordSpecial.toFixed(2),seed:F.seed+n*10000+s}});
-    console.error(`L${String(n).padEnd(3)} ${tier} ${L.name.padEnd(11)} ${L.cols}×${L.rows} K=${L.words.length} Σ=${sumLen(L.words)} p=${sm.p.toFixed(2)} D2=${sm.D2.toFixed(1)} çapraz=${ds.diag.toFixed(2)} ters=${ds.rev.toFixed(2)} dolgu=${L.fillMode||"freq"} örtüşme=${fs.overlap.toFixed(2)} özel=${wordSpecial.toFixed(2)} seedOffset=${s}`);
+    console.error(`L${String(n).padEnd(3)} ${tier} ${L.name.padEnd(13)} ${L.cols}×${L.rows} K=${L.words.length} Σ=${sumLen(L.words)} p=${sm.p.toFixed(2)} D2=${sm.D2.toFixed(1)} çapraz=${ds.diag.toFixed(2)} ters=${ds.rev.toFixed(2)} dolgu=${L.fillMode||"freq"} örtüşme=${fs.overlap.toFixed(2)} özel=${wordSpecial.toFixed(2)} seedOffset=${s}`);
   }
-  process.stdout.write(`// Funnel levelları L1–${count} (docs/levels/funnel-v01.md). Üretim: tools/bake.js funnel tools/funnel-v01.json, seed ${F.seed}+n·10000+offset.\n`);
-  process.stdout.write("window.FUNNEL_DATA="+JSON.stringify({seed:F.seed,sequence:F.sequence,levels:out})+";\n");
+  if(seqErrs.length){console.error(seqErrs.join("\n"));throw new Error(seqErrs.length+" dizi hatası (kelime/tema mesafesi)")}
+  console.error("havuz kullanımı: "+Object.entries(used).map(([k,v])=>`${k} ${v}/${pool[k].length}`).join(" · "));
+  process.stdout.write(`// Funnel ${F.name||""} L1–${count} (docs/levels/funnel-v01.md). Üretim: node tools/bake.js funnel ${src}, seed ${F.seed}+n·10000+offset, poolSeed ${F.poolSeed??"-"}.\n`);
+  process.stdout.write("window.FUNNEL_DATA="+JSON.stringify({name:F.name,id:F.id,seed:F.seed,sequence:F.sequence,tiers:F.tiers,levels:out})+";\n");
 }else if(mode==="pack"){
   // test-levels.js | funnel-levels.js → tapwords-level/1 JSON (docs/levels/level-format.md)
   const src=require("fs").readFileSync(process.argv[3]||"test-levels.js","utf8"), window={}; eval(src);
@@ -275,7 +299,7 @@ if(mode==="validate"){
   });
   const pkg={format:"tapwords-level/1",package:process.argv[4]||"param-tests",lang:"tr",generatedAt:new Date().toISOString().slice(0,10),
     source:"tools/bake.js "+(isFunnel?"funnel":"bake")+" (seed "+D.seed+")",design:isFunnel?"docs/levels/funnel-v01.md":"docs/levels/param-tests-v01.md, param-tests-v02.md, param-tests-v03.md",schema:"docs/levels/level-format.md",
-    ...(isFunnel?{sequence:D.sequence}:{}),constants:{lives:isFunnel?3:5,hints:3,fillAlphabet:"tr-frequency"},levels};
+    ...(isFunnel?{funnel:D.id,funnelName:D.name,sequence:D.sequence,tiers:D.tiers}:{}),constants:{lives:isFunnel?3:5,hints:3,fillAlphabet:"tr-frequency"},levels};
   process.stdout.write(JSON.stringify(pkg,null,1).replace(/\[\n\s+(-?\d+),\n\s+(-?\d+)\n\s+\]/g,"[$1,$2]"));
   console.error(levels.length+" level paketlendi");
 }else if(mode==="check"){

@@ -1,0 +1,25 @@
+{
+  "$comment": "Funnel A — Ritim (ADR-0010 taslak tabanı). Amaze GO! 2. bant: her 10 levelda 3R·4N·2H·1S, duvar her 10'un sonunda. docs/levels/funnels-v01.md",
+  "id": "a",
+  "name": "Ritim",
+  "seed": 20261113,
+  "poolSeed": 1,
+  "count": 100,
+  "pool": "funnel-pool.json",
+  "sequence": [
+    "FRNNHRHRNS",
+    "RNHRNHRNNS", "RNHRNHRNNS", "RNHRNHRNNS", "RNHRNHRNNS", "RNHRNHRNNS",
+    "RNHRNHRNNS", "RNHRNHRNNS", "RNHRNHRNNS", "RNHRNHRNNS"
+  ],
+  "tiers": {
+    "F": { "cols": 12, "rows": 17, "per": 5, "lives": 3, "fillMode": "disjoint" },
+    "R": { "cols": 14, "rows": 19, "per": 5, "lives": 3, "fillMode": "freq" },
+    "N": { "cols": 15, "rows": 21, "per": 5, "lives": 3, "fillMode": "freq" },
+    "H": { "cols": 15, "rows": 21, "per": 5, "lives": 3, "fillMode": "freq" },
+    "S": { "cols": 16, "rows": 23, "per": 5, "lives": 3, "fillMode": "bigram" }
+  },
+  "overrides": {
+    "1": { "diag": 0, "rev": 0 },
+    "2": { "diag": 0 }
+  }
+}

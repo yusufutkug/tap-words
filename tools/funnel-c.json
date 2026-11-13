@@ -1,0 +1,32 @@
+{
+  "$comment": "Funnel C — Dalgalı. Tek/çift 10'luk setler değişir: sakin set (1 S, sonda) / sert set (2 S, biri 4. sırada → duvar beklenmedik yerde). R tier disjoint dolgu (daha güçlü nefes). docs/levels/funnels-v01.md",
+  "id": "c",
+  "name": "Dalgalı",
+  "seed": 20261115,
+  "poolSeed": 3,
+  "count": 100,
+  "pool": "funnel-pool.json",
+  "sequence": [
+    "FRNNRHRNNS",
+    "NHRSNRHNRS",
+    "RNNRHRNNHS",
+    "NHRSNRHNRS",
+    "RNNRHRNNHS",
+    "NHRSNRHNRS",
+    "RNNRHRNNHS",
+    "NHRSNRHNRS",
+    "RNNRHRNNHS",
+    "NHRSNRHNRS"
+  ],
+  "tiers": {
+    "F": { "cols": 12, "rows": 17, "per": 5, "lives": 3, "fillMode": "disjoint" },
+    "R": { "cols": 14, "rows": 19, "per": 5, "lives": 3, "fillMode": "disjoint", "label": "R−" },
+    "N": { "cols": 15, "rows": 21, "per": 5, "lives": 3, "fillMode": "freq" },
+    "H": { "cols": 15, "rows": 21, "per": 5, "lives": 3, "fillMode": "freq" },
+    "S": { "cols": 16, "rows": 23, "per": 5, "lives": 3, "fillMode": "bigram" }
+  },
+  "overrides": {
+    "1": { "diag": 0, "rev": 0 },
+    "2": { "diag": 0 }
+  }
+}

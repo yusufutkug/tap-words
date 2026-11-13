@@ -60,7 +60,7 @@
 | `id` | string | Paket içinde tekil. Ana akışta `"L0001"` biçimi önerilir; testte `T00`. |
 | `index` | int | Oyuncuya gösterilen level numarası (1 tabanlı). Prototipte 50 ana level + test → 51…62. |
 | `lang` | string | Kelimelerin dili. |
-| `tier` | string | Zorluk kademesi (`F R N H S`, `funnel-v01.md` tier seti) veya `"test"`. Loader kullanmaz; analitik ve event seçimi için. Funnel paketinde paket düzeyinde `sequence` (tier dizisi) de bulunur. |
+| `tier` | string | Zorluk kademesi (`F R N H S`, `funnel-v01.md` tier seti; varyant kodu olabilir, ör. `B` = H + `bigram`, `funnels-v01.md`) veya `"test"`. Loader kullanmaz; analitik ve event seçimi için. Funnel paketinde paket düzeyinde `funnel` (a/b/c), `sequence` (10'luk set dizileri) ve `tiers` (kod → parametre, `label`) bulunur; tier'ın parametreleri oradan okunur. |
 | `series` | string? | Yalnızca test paketlerinde: hangi parametre serisi. |
 | `cols`, `rows` | int | Tahta boyutu. `grid.length === rows`, her satır `cols` karakter. |
 | `per` | int | Her kelimenin kopya sayısı. `placements` içinde her `wordIndex` tam `per` kez geçer. (Netleşenler'deki "kelimeye göre değişen kopya" gelirse `per` yerine `copies[]` dizisi eklenir; `per` o zaman kaldırılır.) |
@@ -100,7 +100,7 @@ Hata → level atlanmaz, paket reddedilir (üretim hatası, oyuncu hatası deği
 
 ## Prototip ile ilişki
 
-Prototip (`index.html`) hâlâ kompakt formatı okur (`levels.js`, `test-levels.js`: `letters` düz dizi + `p = [wordIdx, startIdx, dr, dc]`). Bu JSON ondan türetilir: `node tools/bake.js pack test-levels.js <paket-adı> > levels/<dosya>.json` (2026-11-11'den itibaren; `tools/bake.js` ADR-0005'in offline generator'ıdır: `validate`, `bake`, `pack`, `check` modları). İki kaynak aynı seed'den geldiği için tahtalar birebir aynıdır. Paketler: `levels/test-levels-v01.json` (T00–T11), `levels/test-levels-v02.json` (T00–T11 + T09X, T12–T15), `levels/test-levels-v03.json` (öncekiler + T00b, T16–T22; `fillMode`, `reversedWeight`, `meta.fillOverlap/fillSpecial/wordSpecial` ile), **`levels/funnel-v01.json`** (ana akış L1–30, `node tools/bake.js funnel tools/funnel-v01.json > funnel-levels.js` → `pack funnel-levels.js funnel-v01`; can 3, `tier`, `diagonalWeight`, paket `sequence`).
+Prototip (`index.html`) hâlâ kompakt formatı okur (`levels.js`, `test-levels.js`: `letters` düz dizi + `p = [wordIdx, startIdx, dr, dc]`). Bu JSON ondan türetilir: `node tools/bake.js pack test-levels.js <paket-adı> > levels/<dosya>.json` (2026-11-11'den itibaren; `tools/bake.js` ADR-0005'in offline generator'ıdır: `validate`, `bake`, `pack`, `check` modları). İki kaynak aynı seed'den geldiği için tahtalar birebir aynıdır. Paketler: `levels/test-levels-v01.json` (T00–T11), `levels/test-levels-v02.json` (T00–T11 + T09X, T12–T15), `levels/test-levels-v03.json` (öncekiler + T00b, T16–T22; `fillMode`, `reversedWeight`, `meta.fillOverlap/fillSpecial/wordSpecial` ile), **`levels/funnel-a.json`, `funnel-b.json`, `funnel-c.json`** (ana akış varyantları, 100'er level; `node tools/bake.js funnel tools/funnel-<x>.json > funnel-<x>-levels.js` → `pack funnel-<x>-levels.js funnel-<x>`; can 3, `tier`, `diagonalWeight`; paket düzeyinde `funnel`, `funnelName`, `sequence` (10'luk set dizileri), `tiers` (tier → parametre; varyant kodları, ör. B'de `"B"` = H + `bigram`, `label "H+"`). Tasarım `docs/levels/funnels-v01.md`.
 
 ## Açık noktalar
 
