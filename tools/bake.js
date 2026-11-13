@@ -5,7 +5,10 @@
 //   node tools/bake.js bake > test-levels.js   test levellarını pre-bake eder (seed'ler sabit; eski leveller birebir aynı kalır)
 //   node tools/bake.js check <lists.json> [N]  curve dokümanı için kelime listesi + parametre setini doğrular
 //
-// Level parametreleri: cols, rows, per, words[], noDiagCross (opsiyonel; true → SE ve SW çaprazlar görsel X yapamaz)
+// Level parametreleri: cols, rows, per, words[],
+//   noDiagCross (ops.; true → SE ve SW çaprazlar görsel X yapamaz)
+//   rev        (ops.; ters yazım olasılığı 0–1; yoksa eski DIRS dizisi = 0,20)
+//   fillMode   (ops.; "freq" TR frekans (varsayılan) | "disjoint" hedefte olmayan harfler | "target" yalnızca hedef harfleri | "bigram" hedef kelimelerin ikili dizileri)
 
 const FILL="AAAAAAAEEEEEEİİİİİNNNNNRRRRLLLLKKKKDDDIIIMMMUUUTTTSSSYYYOOOBBBÜÜŞŞZZGGÇÇHHVVPPÖÖFCĞJ";
 const DIRS=[];
@@ -33,7 +36,34 @@ const TESTS=[
   {id:"T13",series:"K",       name:"Şehir",     cols:17,rows:24,per:5,words:["SOKAK","CADDE","PAZAR","BANKA","KÖPRÜ","DURAK","FIRIN","HAMAM"]},
   {id:"T14",series:"K",       name:"Yemek",     cols:17,rows:18,per:3,words:["REÇEL","SUCUK","SİMİT","SOSİS","BÖREK","SALAM","PİLAV","ÇORBA","HELVA","LOKUM"]},
   {id:"T15",series:"K",       name:"Karışık",   cols:17,rows:18,per:2,words:["KALEM","BALIK","PERDE","MARTI","LAMBA","DOLAP","KUMRU","HOROZ","ROKET","METRO","TAVUK","KARGA","YOSUN","DALGA","SEHPA"]},
+  // ---- v03 (2026-11-13): yeni N gridi 15×21 (ADR-0009); dolgu modu, ters oranı, özel harf ----
+  {id:"T00b",series:"taban",  name:"Okul",      cols:15,rows:21,per:5,words:["KALEM","SİLGİ","KİTAP","TAHTA","SINIF","ÇANTA"]},
+  {id:"T16",series:"dolgu",   name:"Renkler",   cols:15,rows:21,per:5,fillMode:"disjoint",words:["PEMBE","SİYAH","BEYAZ","YEŞİL","BORDO","KIZIL"]},
+  {id:"T17",series:"dolgu",   name:"Meslekler", cols:15,rows:21,per:5,fillMode:"target",  words:["POLİS","ASKER","PİLOT","TERZİ","KASAP","MİMAR"]},
+  {id:"T18",series:"dolgu",   name:"Sofra",     cols:15,rows:21,per:5,fillMode:"bigram",  words:["EKMEK","PİLAV","ÇORBA","KAHVE","ŞEKER","LİMON"]},
+  {id:"T19",series:"ters",    name:"Hayvanlar", cols:15,rows:21,per:5,rev:0,   words:["ASLAN","YILAN","KOYUN","GEYİK","ZEBRA","TİLKİ"]},
+  {id:"T20",series:"ters",    name:"Şehir",     cols:15,rows:21,per:5,rev:0.5, words:["SOKAK","CADDE","PAZAR","BANKA","DURAK","FIRIN"]},
+  {id:"T21",series:"özel",    name:"Mobilya",   cols:15,rows:21,per:5,words:["PERDE","LAMBA","DOLAP","TABAK","SEHPA","RANZA"]},
+  {id:"T22",series:"özel",    name:"Karışık",   cols:15,rows:21,per:5,words:["ÇİÇEK","GÜNEŞ","KÖPRÜ","ÖRDEK","YÜZÜK","ÇİLEK"]},
 ];
+const SPECIAL=new Set([..."İŞĞÇÖÜ"]);
+const AXES=[[0,1],[1,0],[1,1],[1,-1]];
+
+// Dolgu alfabesi (ağırlıklı dizi) — mod'a göre
+function fillAlphabet(L){
+  const mode=L.fillMode||"freq", tgt=[...L.words.join("")], set=new Set(tgt);
+  if(mode==="freq")return [...FILL];
+  if(mode==="disjoint"){const a=[...FILL].filter(ch=>!set.has(ch));return a.length?a:[...FILL]}
+  return tgt; // "target" ve "bigram": hedef harflerinin hedefteki frekansıyla
+}
+// Bigram modu: dolgu hücresi, soldaki/üstteki komşuyla hedef kelimelerde geçen bir ikili oluşturacak harf alır (ileri ve ters okunuşlar dahil)
+function bigramMap(words){
+  const m=new Map();
+  for(const w of words){const c=[...w];for(let i=0;i<c.length-1;i++){
+    (m.get(c[i])??m.set(c[i],[]).get(c[i])).push(c[i+1]);
+    (m.get(c[i+1])??m.set(c[i+1],[]).get(c[i+1])).push(c[i]);}}
+  return m;
+}
 
 function mulberry32(a){return function(){a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296}}
 
@@ -55,6 +85,16 @@ function generate(L,rand){
   const {cols:COLS,rows:ROWS,per:PER,words:WORDS}=L, noX=!!L.noDiagCross;
   const rnd=n=>Math.floor(rand()*n);
   const inb=(r,c)=>r>=0&&r<ROWS&&c>=0&&c<COLS;
+  // yön: rev tanımlıysa eksen eşit + ters olasılığı rev; değilse eski 20'lik DIRS dizisi (eski tahtalar birebir korunur)
+  const pickDir=()=>{if(L.rev===undefined)return DIRS[rnd(DIRS.length)];const [dr,dc]=AXES[rnd(4)];return rand()<L.rev?[-dr,-dc]:[dr,dc]};
+  const ALPHA_F=fillAlphabet(L), BG=L.fillMode==="bigram"?bigramMap(WORDS):null;
+  const pickFill=(letters,idx)=>{
+    if(BG){const r=Math.floor(idx/COLS),c=idx%COLS,cands=[];
+      if(c>0&&letters[idx-1])cands.push(...(BG.get(letters[idx-1])||[]));
+      if(r>0&&letters[idx-COLS])cands.push(...(BG.get(letters[idx-COLS])||[]));
+      if(cands.length&&rand()<0.8)return cands[rnd(cands.length)];}
+    return ALPHA_F[rnd(ALPHA_F.length)];
+  };
   for(let attempt=0;attempt<400;attempt++){
     const owner=new Array(ROWS*COLS).fill(-1), letters=new Array(ROWS*COLS).fill(""), placements=[];
     let ok=true;
@@ -64,7 +104,7 @@ function generate(L,rand){
       for(let k=0;k<PER;k++){
         let placed=false;
         for(let t=0;t<800&&!placed;t++){
-          const [dr,dc]=DIRS[rnd(DIRS.length)];
+          const [dr,dc]=pickDir();
           const r0=rnd(ROWS),c0=rnd(COLS);
           if(!inb(r0+dr*(w.length-1),c0+dc*(w.length-1)))continue;
           const cells=[];let free=true;
@@ -92,7 +132,7 @@ function generate(L,rand){
       }
     }
     if(!ok)continue;
-    for(let i=0;i<ROWS*COLS;i++)if(owner[i]===-1)letters[i]=FILL[rnd(FILL.length)];
+    for(let i=0;i<ROWS*COLS;i++)if(owner[i]===-1)letters[i]=pickFill(letters,i);
     let unfixable=false;
     for(let pass=0;pass<40&&!unfixable;pass++){
       let fixed=0;
@@ -109,7 +149,8 @@ function generate(L,rand){
           const fillers=idxs.filter(idx=>owner[idx]===-1);
           if(!fillers.length){unfixable=true;return}
           const idx=fillers[rnd(fillers.length)];
-          let nl;do{nl=FILL[rnd(FILL.length)]}while(nl===letters[idx]);
+          let nl,g=0;do{nl=ALPHA_F[rnd(ALPHA_F.length)]}while(nl===letters[idx]&&++g<50);
+          if(nl===letters[idx]){unfixable=true;return}
           letters[idx]=nl;fixed++;
         }
       });
@@ -119,6 +160,12 @@ function generate(L,rand){
     return {owner,letters,placements,attempt};
   }
   return null;
+}
+// Dolgu istatistiği: dolgu hücrelerinin hedef harf kümesiyle örtüşme payı ve özel harf payı
+function fillStats(L,G){
+  const set=new Set([...L.words.join("")]); let n=0,ov=0,sp=0;
+  G.owner.forEach((o,i)=>{if(o!==-1)return;n++;if(set.has(G.letters[i]))ov++;if(SPECIAL.has(G.letters[i]))sp++});
+  return {overlap:ov/n,special:sp/n,n};
 }
 
 // ---- istatistik ----
@@ -157,19 +204,22 @@ if(mode==="validate"){
   }
 }else if(mode==="bake"){
   const SEED=20261105;
-  // Yön oranı kirletmesin: gerçekleşen ters 0,13–0,27 ve çapraz 0,27–0,43 bandına düşen ilk seed alınır.
-  const BAND=G=>{const d=dirStats(G);return d.rev>=0.13&&d.rev<=0.27&&d.diag>=0.27&&d.diag<=0.43};
+  // Yön oranı kirletmesin: gerçekleşen ters (hedef rev ?? 0,20) ±0,07 ve çapraz 0,27–0,43 bandına düşen ilk seed alınır.
+  const BAND=(L,G)=>{const d=dirStats(G),t=L.rev??0.2;return Math.abs(d.rev-t)<=0.07&&d.diag>=0.27&&d.diag<=0.43};
   const out=[];
   for(const [i,L] of TESTS.entries()){
     let G=null,s;
-    for(s=0;s<5000;s++){const g=generate(L,mulberry32(SEED+i*10000+s));if(g&&BAND(g)){G=g;break}}
+    for(s=0;s<5000;s++){const g=generate(L,mulberry32(SEED+i*10000+s));if(g&&BAND(L,g)){G=g;break}}
     if(!G)throw new Error(L.id+" bantta üretilemedi");
-    const target=G.owner.filter(o=>o!==-1).length, ds=dirStats(G), x=xCount(G,L.cols), sm=summary(L);
-    out.push({id:L.id,series:L.series,name:L.name,cols:L.cols,rows:L.rows,per:L.per,...(L.noDiagCross?{noDiagCross:true}:{}),words:L.words,
+    const target=G.owner.filter(o=>o!==-1).length, ds=dirStats(G), x=xCount(G,L.cols), sm=summary(L), fs=fillStats(L,G);
+    const sp=[...L.words.join("")]; const wordSpecial=sp.filter(ch=>SPECIAL.has(ch)).length/sp.length;
+    out.push({id:L.id,series:L.series,name:L.name,cols:L.cols,rows:L.rows,per:L.per,
+      ...(L.noDiagCross?{noDiagCross:true}:{}),...(L.rev!==undefined?{rev:L.rev}:{}),...(L.fillMode?{fillMode:L.fillMode}:{}),words:L.words,
       letters:G.letters.join(""),
       p:G.placements.map(pl=>[pl.word,pl.cells[0],pl.dir[0],pl.dir[1]]),
-      meta:{target,ratio:+(target/(L.cols*L.rows)).toFixed(3),D:+sm.D.toFixed(1),D2:+sm.D2.toFixed(1),rev:+ds.rev.toFixed(2),diag:+ds.diag.toFixed(2),xCross:x,seed:SEED+i*10000+s}});
-    console.error(`${L.id.padEnd(5)} ${L.cols}×${L.rows} per${L.per} K=${L.words.length} Y=${G.placements.length} hedef=${target} p=${(target/(L.cols*L.rows)).toFixed(3)} D=${sm.D.toFixed(1)} D2=${sm.D2.toFixed(1)} ters=${ds.rev.toFixed(2)} çapraz=${ds.diag.toFixed(2)} X=${x} seedOffset=${s}`);
+      meta:{target,ratio:+(target/(L.cols*L.rows)).toFixed(3),D:+sm.D.toFixed(1),D2:+sm.D2.toFixed(1),rev:+ds.rev.toFixed(2),diag:+ds.diag.toFixed(2),xCross:x,
+        fillOverlap:+fs.overlap.toFixed(2),fillSpecial:+fs.special.toFixed(2),wordSpecial:+wordSpecial.toFixed(2),seed:SEED+i*10000+s}});
+    console.error(`${L.id.padEnd(5)} ${L.cols}×${L.rows} per${L.per} K=${L.words.length} Y=${G.placements.length} hedef=${target} p=${(target/(L.cols*L.rows)).toFixed(3)} D2=${sm.D2.toFixed(1)} ters=${ds.rev.toFixed(2)} çapraz=${ds.diag.toFixed(2)} X=${x} dolguÖrtüşme=${fs.overlap.toFixed(2)} dolguÖzel=${fs.special.toFixed(2)} kelimeÖzel=${wordSpecial.toFixed(2)} seedOffset=${s}`);
   }
   process.stdout.write(`// Test levelları (parametre keşfi). Üretim: tools/bake.js bake, seed ${SEED}+i·10000+offset, index.html generator'ının kopyası.\n`);
   process.stdout.write(`// Her level kendi cols/rows/per değerini taşır; format letters + p = [kelimeIdx, başlangıçIdx, dr, dc] (levels.js ile aynı).\n`);
@@ -188,9 +238,11 @@ if(mode==="validate"){
     });
     const fill=[];for(let idx=0;idx<n;idx++)if(owner[idx]===-1)fill.push([Math.floor(idx/L.cols),idx%L.cols]);
     const grid=[];for(let r=0;r<L.rows;r++)grid.push(letters.slice(r*L.cols,(r+1)*L.cols).join(""));
-    return {id:L.id,index:51+i,lang:"tr",tier:"test",series:L.series,cols:L.cols,rows:L.rows,per:L.per,lives:5,hints:3,...(L.noDiagCross?{noDiagCross:true}:{}),
+    return {id:L.id,index:51+i,lang:"tr",tier:"test",series:L.series,cols:L.cols,rows:L.rows,per:L.per,lives:5,hints:3,
+      ...(L.noDiagCross?{noDiagCross:true}:{}),...(L.rev!==undefined?{reversedWeight:L.rev}:{}),fillMode:L.fillMode||"freq",
       words:L.words,grid,placements,fill,
-      meta:{theme:L.name,targetCells:n-fill.length,fillCells:fill.length,ratio:L.meta.ratio,D:L.meta.D,D2:L.meta.D2,reversedShare:L.meta.rev,diagonalShare:L.meta.diag,xCross:L.meta.xCross,seed:L.meta.seed}};
+      meta:{theme:L.name,targetCells:n-fill.length,fillCells:fill.length,ratio:L.meta.ratio,D:L.meta.D,D2:L.meta.D2,reversedShare:L.meta.rev,diagonalShare:L.meta.diag,xCross:L.meta.xCross,
+        ...(L.meta.fillOverlap!==undefined?{fillOverlap:L.meta.fillOverlap,fillSpecial:L.meta.fillSpecial,wordSpecial:L.meta.wordSpecial}:{}),seed:L.meta.seed}};
   });
   const pkg={format:"tapwords-level/1",package:process.argv[4]||"param-tests",lang:"tr",generatedAt:new Date().toISOString().slice(0,10),
     source:"tools/bake.js bake (seed "+D.seed+")",design:"docs/levels/param-tests-v01.md, param-tests-v02.md",schema:"docs/levels/level-format.md",

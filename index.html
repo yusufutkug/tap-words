@@ -184,7 +184,7 @@ const LEVELS=[
 ];
 // Parameter-exploration test levels (test-levels.js, docs/levels/param-tests-v01.md): K=6, can 5; PER / uzunluk / board birer birer değişir.
 const BASE_N=LEVELS.length;
-(window.TEST_LEVEL_DATA?.levels??[]).forEach(t=>LEVELS.push({name:`${t.id} · ${t.name}`,words:t.words,cols:t.cols,rows:t.rows,per:t.per,noDiagCross:!!t.noDiagCross,test:t}));
+(window.TEST_LEVEL_DATA?.levels??[]).forEach(t=>LEVELS.push({name:`${t.id} · ${t.name}`,words:t.words,cols:t.cols,rows:t.rows,per:t.per,noDiagCross:!!t.noDiagCross,rev:t.rev,fillMode:t.fillMode,test:t}));
 let level=0, WORDS=LEVELS[0].words;
 const HUES=[210,25,150,280,45,330,180,90,0,250];
 const FILL="AAAAAAAEEEEEEİİİİİNNNNNRRRRLLLLKKKKDDDIIIMMMUUUTTTSSSYYYOOOBBBÜÜŞŞZZGGÇÇHHVVPPÖÖFCĞJ";
@@ -195,6 +195,23 @@ const ALL8=[[0,1],[1,0],[1,1],[-1,1],[0,-1],[-1,0],[-1,-1],[1,-1]];
 const rnd=n=>Math.floor(Math.random()*n);
 const inb=(r,c)=>r>=0&&r<ROWS&&c>=0&&c<COLS;
 let NOX=false; // LEVELS[i].noDiagCross: SE ve SW çaprazlar hücre paylaşmadan görsel X yapamaz (tools/bake.js ile aynı kural)
+let REV; // LEVELS[i].rev: ters yazım olasılığı (0–1); undefined → DIRS dizisi (0,20)
+let FILLMODE="freq"; // LEVELS[i].fillMode: freq | disjoint | target | bigram (tools/bake.js ile aynı)
+const AXES=[[0,1],[1,0],[1,1],[1,-1]];
+const SPECIAL=new Set([..."İŞĞÇÖÜ"]);
+function fillAlphabet(){
+  const tgt=[...WORDS.join("")], set=new Set(tgt);
+  if(FILLMODE==="disjoint"){const a=[...FILL].filter(ch=>!set.has(ch));return a.length?a:[...FILL]}
+  if(FILLMODE==="target"||FILLMODE==="bigram")return tgt;
+  return [...FILL];
+}
+function bigramMap(){
+  const m=new Map();
+  for(const w of WORDS){const c=[...w];for(let i=0;i<c.length-1;i++){
+    (m.get(c[i])??m.set(c[i],[]).get(c[i])).push(c[i+1]);
+    (m.get(c[i+1])??m.set(c[i+1],[]).get(c[i+1])).push(c[i]);}}
+  return m;
+}
 function crossesDiag(cells,dr,dc,owner,placements){
   for(let i=0;i<cells.length-1;i++){
     const a=cells[i], r=Math.floor(a/COLS), c=a%COLS;
@@ -206,6 +223,15 @@ function crossesDiag(cells,dr,dc,owner,placements){
 }
 
 function generate(){
+  const pickDir=()=>{if(REV===undefined)return DIRS[rnd(DIRS.length)];const [dr,dc]=AXES[rnd(4)];return Math.random()<REV?[-dr,-dc]:[dr,dc]};
+  const ALPHA_F=fillAlphabet(), BG=FILLMODE==="bigram"?bigramMap():null;
+  const pickFill=(letters,idx)=>{
+    if(BG){const r=Math.floor(idx/COLS),c=idx%COLS,cands=[];
+      if(c>0&&letters[idx-1])cands.push(...(BG.get(letters[idx-1])||[]));
+      if(r>0&&letters[idx-COLS])cands.push(...(BG.get(letters[idx-COLS])||[]));
+      if(cands.length&&Math.random()<0.8)return cands[rnd(cands.length)];}
+    return ALPHA_F[rnd(ALPHA_F.length)];
+  };
   for(let attempt=0;attempt<400;attempt++){
     const owner=new Array(ROWS*COLS).fill(-1), letters=new Array(ROWS*COLS).fill(""), placements=[];
     let ok=true;
@@ -215,7 +241,7 @@ function generate(){
       for(let k=0;k<PER;k++){
         let placed=false;
         for(let t=0;t<800&&!placed;t++){
-          const [dr,dc]=DIRS[rnd(DIRS.length)];
+          const [dr,dc]=pickDir();
           const r0=rnd(ROWS),c0=rnd(COLS);
           if(!inb(r0+dr*(w.length-1),c0+dc*(w.length-1)))continue;
           const cells=[];let free=true;
@@ -243,7 +269,7 @@ function generate(){
       }
     }
     if(!ok)continue;
-    for(let i=0;i<ROWS*COLS;i++)if(owner[i]===-1)letters[i]=FILL[rnd(FILL.length)];
+    for(let i=0;i<ROWS*COLS;i++)if(owner[i]===-1)letters[i]=pickFill(letters,i);
     // remove accidental extra occurrences
     let unfixable=false;
     for(let pass=0;pass<40&&!unfixable;pass++){
@@ -261,7 +287,8 @@ function generate(){
           const fillers=idxs.filter(idx=>owner[idx]===-1);
           if(!fillers.length){unfixable=true;return}
           const idx=fillers[rnd(fillers.length)];
-          let nl;do{nl=FILL[rnd(FILL.length)]}while(nl===letters[idx]);
+          let nl,g=0;do{nl=ALPHA_F[rnd(ALPHA_F.length)]}while(nl===letters[idx]&&++g<50);
+          if(nl===letters[idx]){unfixable=true;return}
           letters[idx]=nl;fixed++;
         }
       });
@@ -297,7 +324,7 @@ function newGame(state,lv){
   if(lv!==undefined)level=lv; if(state&&state.level!==undefined)level=state.level;
   try{localStorage.setItem("ka-level",level)}catch(e){}
   const L=LEVELS[level]; WORDS=L.words;
-  COLS=L.cols??DEF.cols; ROWS=L.rows??DEF.rows; PER=L.per??DEF.per; NOX=!!L.noDiagCross;
+  COLS=L.cols??DEF.cols; ROWS=L.rows??DEF.rows; PER=L.per??DEF.per; NOX=!!L.noDiagCross; REV=L.rev; FILLMODE=L.fillMode??"freq";
   renderLevels();
   G=state?.G??baked(level)??generate();
   found=state?.found??new Array(G.placements.length).fill(false);
@@ -461,7 +488,7 @@ function finish(win){
   over=true; renderHint();
   const n=found.filter(Boolean).length;
   const ms=Date.now()-startedAt, sec=Math.round(ms/1000), dur=`${Math.floor(sec/60)}:${String(sec%60).padStart(2,"0")}`;
-  logLevel({level:level+1,name:LEVELS[level].name,cols:COLS,rows:ROWS,per:PER,words:WORDS.length,placements:found.length,found:n,ms,wrongTaps,wrongAt:[...wrongAt],hintsUsed:MAXH-hints,result:win?"win":"fail",at:new Date().toISOString()});
+  logLevel({level:level+1,name:LEVELS[level].name,cols:COLS,rows:ROWS,per:PER,fillMode:FILLMODE,rev:REV??0.2,words:WORDS.length,placements:found.length,found:n,ms,wrongTaps,wrongAt:[...wrongAt],hintsUsed:MAXH-hints,result:win?"win":"fail",at:new Date().toISOString()});
   const d=document.createElement("div");d.className="overlay";
   d.innerHTML=`<div class="card"><h2>${win?"Hepsini buldun!":"Canların bitti"}</h2><p>${n} / ${found.length} kelime bulundu${win?`, ${lives} can kaldı`:""}.</p><p>Süre: <b>${dur}</b> · Yanlış: <b>${wrongTaps}</b> · İpucu: <b>${MAXH-hints}</b></p>${win&&level<LEVELS.length-1?`<button id="next">Sonraki seviye</button>`:""}<button id="again">${win&&level===LEVELS.length-1?"Baştan başla":"Tekrar oyna"}</button></div>`;
   vp.appendChild(d);

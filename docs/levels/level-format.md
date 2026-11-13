@@ -66,6 +66,8 @@
 | `per` | int | Her kelimenin kopya sayısı. `placements` içinde her `wordIndex` tam `per` kez geçer. (Netleşenler'deki "kelimeye göre değişen kopya" gelirse `per` yerine `copies[]` dizisi eklenir; `per` o zaman kaldırılır.) |
 | `lives`, `hints` | int | Level içi can ve ipucu. ADR-0004 → 3 can; test paketinde 5. |
 | `noDiagCross` | bool? | `true` → tahtada SE ve SW çaprazlar görsel X yapmaz (generator kuralı, `param-tests-v02.md`). Loader kullanmaz; üretim bilgisi. Yoksa `false`. |
+| `fillMode` | string | Dolgu alfabesi modu (`param-tests-v03.md`): `freq` TR harf frekansı (varsayılan) · `disjoint` yalnızca hedef kelimelerde geçmeyen harfler · `target` yalnızca hedef kelimelerin harfleri (hedefteki frekansla) · `bigram` hedef kelimelerde geçen ikililerle zincirlenmiş hedef harfleri. Loader kullanmaz; üretim bilgisi. |
+| `reversedWeight` | float? | Generator'a verilen ters yazım olasılığı (0–1). Yoksa 0,20 (ileri 4 : ters 1). Gerçekleşen pay `meta.reversedShare`. |
 | `words` | string[] | Chip sırası. Büyük harf, dilin kendi büyük harfleri (`İ`, `I`). Palindrom yok; hiçbir kelime (veya tersi) başka bir kelimenin alt dizisi değil (generator kısıtı, `mechanic.md`). |
 | `grid` | string[] | `rows` adet satır; her satır `cols` adet **Unicode karakter** (UTF-16 code unit değil; Unity'de `StringInfo`/`EnumerateRunes` ile sayılmalı). |
 | `placements[]` | object[] | Her kopya bir kayıt. `word` ve `wordIndex` ikisi de var (okunabilirlik + hız). `row/col` ilk harf; `dir` 8 yön (`E S SE SW W N NW NE`), `dr/dc` aynı bilginin sayısal hali; `cells` her harfin koordinatı, kelime sırasıyla. **Yerleşimler kesişmez**: bir hücre en fazla bir yerleşime aittir. |
@@ -78,6 +80,9 @@
 | `meta.xCross` | int | Görsel X yapan çapraz yerleşim çifti sayısı. `noDiagCross: true` ise 0. |
 | `meta.reversedShare` | float | Ters yazılı (`W N NW NE`) yerleşim payı. |
 | `meta.diagonalShare` | float | Çapraz yerleşim payı. |
+| `meta.fillOverlap` | float? | Hedef kelimelerde geçen bir harfi taşıyan dolgu hücresi / tüm dolgu (#23). `disjoint` → 0, `target`/`bigram` → 1. |
+| `meta.fillSpecial` | float? | Özel harf (İŞĞÇÖÜ) taşıyan dolgu hücresi payı (#24). |
+| `meta.wordSpecial` | float? | Kelime listesindeki özel harf payı (#17). |
 | `meta.theme` | string | Tema etiketi (ekranda gösterilen). |
 | `meta.seed` | int | Üretim seed'i; yalnızca yeniden üretilebilirlik için. |
 
@@ -94,7 +99,7 @@ Hata → level atlanmaz, paket reddedilir (üretim hatası, oyuncu hatası deği
 
 ## Prototip ile ilişki
 
-Prototip (`index.html`) hâlâ kompakt formatı okur (`levels.js`, `test-levels.js`: `letters` düz dizi + `p = [wordIdx, startIdx, dr, dc]`). Bu JSON ondan türetilir: `node tools/bake.js pack test-levels.js <paket-adı> > levels/<dosya>.json` (2026-11-11'den itibaren; `tools/bake.js` ADR-0005'in offline generator'ıdır: `validate`, `bake`, `pack`, `check` modları). İki kaynak aynı seed'den geldiği için tahtalar birebir aynıdır. Paketler: `levels/test-levels-v01.json` (T00–T11), `levels/test-levels-v02.json` (T00–T11 + T09X, T12–T15).
+Prototip (`index.html`) hâlâ kompakt formatı okur (`levels.js`, `test-levels.js`: `letters` düz dizi + `p = [wordIdx, startIdx, dr, dc]`). Bu JSON ondan türetilir: `node tools/bake.js pack test-levels.js <paket-adı> > levels/<dosya>.json` (2026-11-11'den itibaren; `tools/bake.js` ADR-0005'in offline generator'ıdır: `validate`, `bake`, `pack`, `check` modları). İki kaynak aynı seed'den geldiği için tahtalar birebir aynıdır. Paketler: `levels/test-levels-v01.json` (T00–T11), `levels/test-levels-v02.json` (T00–T11 + T09X, T12–T15), `levels/test-levels-v03.json` (öncekiler + T00b, T16–T22; `fillMode`, `reversedWeight`, `meta.fillOverlap/fillSpecial/wordSpecial` ile).
 
 ## Açık noktalar
 

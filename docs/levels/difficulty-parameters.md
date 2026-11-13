@@ -33,7 +33,7 @@ Kod sütunu prototip (`index.html`) ve JSON şeması (`level-format.md`) karşı
 | 5 | Tahta satırı | `ROWS` | Hacim | ↑ alan büyür, p düşer | **D** | T08 (15), T00 (18), T09 (21), T10 (26) |
 | 6 | Kelime uzunluğu (ortalama) | `words[]` | Risk + Hacim | ↓ kısa kelime zor fark edilir; ↑ p artar | **D** | T04 (4), T00 (5), T05 (6), T06 (7) |
 | 7 | Kelime uzunluğu (dağılım) | `words[]` | Risk | karışık → tarama stratejisi bozulur | **D** | T07 (4–7, Σ31 ≈ taban) ile T00 (hep 5) karşılaştırması |
-| 8 | Ters yazım oranı | `DIRS` ağırlığı → `meta.reversedShare` | Hacim | ↑ pattern tanıma zorlaşır | **B** 0,13–0,27 | Nominal ileri 4 : geri 1 (%20); seed gerçekleşen oran bantta kalacak şekilde seçildi |
+| 8 | Ters yazım oranı | `rev` / `reversedWeight` → `meta.reversedShare` | Hacim | ↑ pattern tanıma zorlaşır | **B** 0,13–0,27 → **D** v03 (T19 0, T00b 0,23, T20 0,50) | Nominal ileri 4 : geri 1 (%20); seed gerçekleşen oran bantta (hedef ± 0,07) kalacak şekilde seçildi |
 | 9 | Çapraz oranı | `DIRS` → `meta.diagonalShare` | Hacim | ↑ | **B** 0,30–0,40 | Nominal %50; sıkışık tahtada çapraz reddedildiği için gerçekleşen %3–50 savruluyordu → bant zorunlu oldu |
 | 10 | Dolgu alfabesi | `FILL` | Risk | hedef harflere yakın dolgu → tuzak | **S** = TR frekans | Değişmedi. Gerçekleşen dolgu–hedef örtüşmesi aşağıda (Ö) |
 | 11 | Can | `MAXL` / `lives` | Sabit | ↓ | **S = 5** | Utku kararı (ADR-0004: 3). Fail yerine ε ölçüldüğü için 5 tercih edildi |
@@ -58,7 +58,7 @@ Bunlar `words[]`'den türetilir ama generator parametresi değildir; listeyi kü
 
 | # | Parametre | Nasıl ölçülür | Sınıf | Zorlaştıran yön | Test setinde | Gerçekleşen (T00–T11) |
 |---|---|---|---|---|---|---|
-| 17 | Özel harf oranı (İŞĞÇÖÜ) | özel harf / Σ harf | Risk ↓ (fener etkisi: oyuncu Ğ'yi arar, kelimeyi değil) | ↓ zorlaştırır | **B** %0–13 | %0 (T03) … %13 (T00, T10) |
+| 17 | Özel harf oranı (İŞĞÇÖÜ) | özel harf / Σ harf (`meta.wordSpecial`) | Risk ↓ (fener etkisi: oyuncu Ğ'yi arar, kelimeyi değil) | ↓ zorlaştırır | **B** %0–13 → **D** v03 (T21 %0, T22 %40) | %0 (T03) … %13 (T00, T10) |
 | 18 | Kelimeler arası ortak harf | ikili Jaccard ortalaması (kelime harf kümeleri) | Risk ↑ (benzer kelimeler birbirine karışır) | ↑ | **Ö** | 0,13 (T09) … 0,26 (T01, T08) |
 | 19 | Harf çeşitliliği | farklı harf / Σ harf | Risk | ↓ az çeşit → tahta tekdüze | **Ö** | %40 (T01, T06) … %63 (T04) |
 | 20 | Kelime içi tekrarlı harf | tekrarlı harfi olan kelime sayısı | Risk ↓ (ANNE, TAHTA görsel olarak kolay) | ↓ | **Ö** | 1 (T04) … 6 (T06) |
@@ -69,8 +69,8 @@ Bunlar `words[]`'den türetilir ama generator parametresi değildir; listeyi kü
 
 | # | Parametre | Nasıl ölçülür | Sınıf | Zorlaştıran yön | Test setinde | Gerçekleşen (T00–T11) |
 |---|---|---|---|---|---|---|
-| 23 | Dolgu–hedef harf örtüşmesi | hedef kelimelerde geçen harfi taşıyan dolgu hücresi / tüm dolgu | **Risk** (en güçlü aday) | ↑ her harf şüpheli | **Ö** | %52 (T01) … %79 (T02) — TR frekans alfabesiyle doğal olarak yüksek |
-| 24 | Dolguda özel harf | özel harfli dolgu / tüm dolgu | Risk ↑ (feneri söndürür) | ↑ | **Ö** | %13–21 |
+| 23 | Dolgu–hedef harf örtüşmesi | hedef kelimelerde geçen harfi taşıyan dolgu hücresi / tüm dolgu (`meta.fillOverlap`; girdi: `fillMode`) | **Risk** (en güçlü aday) | ↑ her harf şüpheli | **Ö** → **D** v03 (T16 %0, T00b %72, T17 %100, T18 %100 + ikili) | %52 (T01) … %79 (T02) — TR frekans alfabesiyle doğal olarak yüksek |
+| 24 | Dolguda özel harf | özel harfli dolgu / tüm dolgu (`meta.fillSpecial`) | Risk ↑ (feneri söndürür) | ↑ | **Ö** | %13–21; T16 (disjoint) %25, T18 (bigram) %9 |
 | 25 | Kopya kümelenmesi | aynı kelimenin kopyaları arası ort. merkez mesafesi / tahta köşegeni | Hacim ↓ (yakın kopyalar bedava bulunur) | ↓ | **Ö** | %30 (T05) … %40 (T04) köşegen — rastgele, kümelenme yok |
 | 26 | Kelime başına yön çeşitliliği | aynı kelimenin kopyaları kaç farklı yönde | Hacim ↑ | ↑ | **—** | Ölçülmedi; rastgele |
 | 26b | Çapraz X kesişmesi | SE ve SW yerleşimlerin hücre paylaşmadan görsel X yaptığı çift sayısı (`meta.xCross`) | — | — | **D** v02 (T09 4 ↔ T09X 0) → **kaldıraç değil** | T09X "biraz daha zor" çıktı (ters yön, gürültü). `noDiagCross` generator'da duruyor, varsayılan kapalı (ADR-0008 rev.) |
@@ -159,18 +159,28 @@ Hangi parametrenin etkisi hangi logdan okunur (`mechanic.md` level sonu logu, `l
 | T12, T13 | #1 K 4 / 8, tahta K ile büyür (17×12, 17×24) | p 0,49, PER 5 | D'nin Y yoluyla doğrulanması (10 / 20) |
 | T14, T15 | #1 K 10 / 15 **ve** #2 PER 3 / 2 ters yönde | **Y 30, p 0,49, D 15,3 = T00** | K/PER bölüşümü tek başına zorluk üretir mi? |
 
+## 5c. v03 seti (2026-11-13): T00b, T16–T22
+
+`param-tests-v03.md`. Risk ekseninin üç adayı; hepsi yeni N gridinde (15×21, ADR-0009), K 6, PER 5, 5 harf, p 0,48, **D₂ 9,4 sabit** — D₂ aynıyken fark çıkarsa parametre D₂'nin dışında kalan bir kaldıraçtır:
+
+| Level | Oynatılan | Değer | Sabit |
+|---|---|---|---|
+| T00b | taban (T00'ın 15×21 kopyası) | örtüşme %72, ters 0,23, özel %13 | — |
+| T16, T17, T18 | #23 dolgu–hedef örtüşmesi (`fillMode`) | %0 (`disjoint`) / %100 (`target`) / %100 + hedef ikilileri (`bigram`) | ters 0,13–0,27, özel ≤ %13 |
+| T19, T20 | #8 ters oranı (`reversedWeight`) | 0 / 0,50 | dolgu `freq`, özel ≤ %13 |
+| T21, T22 | #17 kelime özel harf oranı (liste seçimi) | %0 / %40 | dolgu `freq`, ters 0,13–0,27 |
+
 ## 6. Bu setlerde oynatılmayan, sonraki setin adayları
 
-Katalogdaki **S/B/Ö** parametreleri bilinçli olarak sabit tutuldu; v02 sonuçları geldikten sonra üçüncü set bunlardan seçilir. Aday sırası, beklenen etki büyüklüğüne göre:
-
-1. **Dolgu–hedef örtüşmesi (#23)** — TR frekans alfabesiyle zaten %52–79; kontrollü olarak %0 (hedefte olmayan harflerden dolgu) ve %100 (yalnızca hedef harflerinden dolgu) uçları denenmeli. Risk ekseninde en güçlü tek kaldıraç adayı. Referans yok — /market-research'e soru düşülecek (WSE ve Amaze GO! dolgu alfabesini nasıl seçiyor).
-2. **Ters / çapraz oranı (#8, #9)** — WSE `hwp` L35+ kalıbı (`word-search-explorer.md`); %0 / %20 / %50 ters.
-3. **Özel harf oranı (#17)** — %0 vs %25; fener etkisinin büyüklüğü.
+1. ~~Dolgu–hedef örtüşmesi (#23)~~ → v03 (T16–T18). Referans sorusu açık: WSE ve Amaze GO! dolgu alfabesini nasıl seçiyor (`open-questions.md`).
+2. ~~Ters oranı (#8)~~ → v03 (T19–T20). Çapraz oranı (#9) hâlâ bantta; ayrı set.
+3. ~~Özel harf oranı (#17)~~ → v03 (T21–T22).
 4. **Kopya dağılımı (#3)** — eşit 5 vs 2–8 arası değişken (Netleşenler).
 5. ~~K (#1)~~ → v02 setinde (T12–T15).
 6. **Can (#11)** — 3 (ADR-0004) ile aynı setin tekrarı; fail oranı için.
+7. **Near-miss (#27)** — v03 `bigram` modu dolaylı olarak buna yaklaşır; T18 sonucuna göre açılır.
 
-Her yeni seri aynı kuralla kurulur: T00 tabanı korunur, tek parametre sapar, yön oranı ve özel harf bantta tutulur, seed gerçekleşen değerlere göre seçilir.
+Her yeni seri aynı kuralla kurulur: taban korunur, tek parametre sapar, yön oranı ve özel harf bantta tutulur, seed gerçekleşen değerlere göre seçilir.
 
 ## 7. Referans
 
