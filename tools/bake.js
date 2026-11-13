@@ -9,6 +9,7 @@
 //   noDiagCross (ops.; true → SE ve SW çaprazlar görsel X yapamaz)
 //   rev        (ops.; ters yazım olasılığı 0–1; yoksa eski DIRS dizisi = 0,20)
 //   fillMode   (ops.; "freq" TR frekans (varsayılan) | "disjoint" hedefte olmayan harfler | "target" yalnızca hedef harfleri | "bigram" hedef kelimelerin ikili dizileri)
+//   diag       (ops.; çapraz eksen olasılığı 0–1; yoksa 0,5 = dört eksen eşit. 0 → yalnızca yatay/dikey, FTUE)
 
 const FILL="AAAAAAAEEEEEEİİİİİNNNNNRRRRLLLLKKKKDDDIIIMMMUUUTTTSSSYYYOOOBBBÜÜŞŞZZGGÇÇHHVVPPÖÖFCĞJ";
 const DIRS=[];
@@ -86,7 +87,10 @@ function generate(L,rand){
   const rnd=n=>Math.floor(rand()*n);
   const inb=(r,c)=>r>=0&&r<ROWS&&c>=0&&c<COLS;
   // yön: rev tanımlıysa eksen eşit + ters olasılığı rev; değilse eski 20'lik DIRS dizisi (eski tahtalar birebir korunur)
-  const pickDir=()=>{if(L.rev===undefined)return DIRS[rnd(DIRS.length)];const [dr,dc]=AXES[rnd(4)];return rand()<L.rev?[-dr,-dc]:[dr,dc]};
+  const pickDir=()=>{
+    if(L.rev===undefined&&L.diag===undefined)return DIRS[rnd(DIRS.length)];
+    const rev=L.rev??0.2, [dr,dc]=L.diag===undefined?AXES[rnd(4)]:(rand()<L.diag?AXES[2+rnd(2)]:AXES[rnd(2)]);
+    return rand()<rev?[-dr,-dc]:[dr,dc]};
   const ALPHA_F=fillAlphabet(L), BG=L.fillMode==="bigram"?bigramMap(WORDS):null;
   const pickFill=(letters,idx)=>{
     if(BG){const r=Math.floor(idx/COLS),c=idx%COLS,cands=[];
@@ -225,10 +229,35 @@ if(mode==="validate"){
   process.stdout.write(`// Her level kendi cols/rows/per değerini taşır; format letters + p = [kelimeIdx, başlangıçIdx, dr, dc] (levels.js ile aynı).\n`);
   process.stdout.write(`// Tasarım: docs/levels/param-tests-v01.md (T00–T11), docs/levels/param-tests-v02.md (T09X, T12–T15)\n`);
   process.stdout.write("window.TEST_LEVEL_DATA="+JSON.stringify({seed:SEED,levels:out})+";\n");
+}else if(mode==="funnel"){
+  // Amaze GO! modeli (docs/levels/funnel-v01.md): level numarası → tier (periyodik dizi), tier → parametre seti, kelime listesi tier havuzundan sırayla.
+  // Girdi: tools/funnel-v01.json {seed, sequence:["FRNNHRHRNS","RNHRNHRNNS"...] (ilk eleman bir kez, sonrakiler döngü), tiers:{F:{cols,rows,per,lives,fillMode,...}}, overrides:{"1":{diag:0,rev:0}}, pool:{F:[{theme,words}],...}}
+  const F=JSON.parse(require("fs").readFileSync(process.argv[3]||"tools/funnel-v01.json","utf8"));
+  const count=+process.argv[4]||Object.values(F.pool).reduce((s,a)=>s+a.length,0);
+  const seqAt=n=>{const [first,...loop]=F.sequence;if(n<=first.length)return first[n-1];const i=(n-first.length-1)%loop.join("").length;return loop.join("")[i]};
+  const used=Object.fromEntries(Object.keys(F.pool).map(k=>[k,0])), out=[];
+  for(let n=1;n<=count;n++){
+    const tier=seqAt(n), T=F.tiers[tier], item=F.pool[tier][used[tier]++];
+    if(!item)throw new Error(`L${n}: ${tier} havuzu bitti (${used[tier]-1})`);
+    const L={id:"L"+n,tier,name:item.theme,words:item.words,cols:T.cols,rows:T.rows,per:T.per,lives:T.lives??3,
+      ...(T.fillMode?{fillMode:T.fillMode}:{}),...(T.diag!==undefined?{diag:T.diag}:{}),...(T.rev!==undefined?{rev:T.rev}:{}),...(F.overrides?.[n]||{})};
+    const BAND=G=>{const d=dirStats(G);const dOK=L.diag===0?d.diag===0:(d.diag>=0.27&&d.diag<=0.43);const r=L.rev??0.2;return dOK&&Math.abs(d.rev-r)<=0.07};
+    let G=null,s;for(s=0;s<5000;s++){const g=generate(L,mulberry32(F.seed+n*10000+s));if(g&&BAND(g)){G=g;break}}
+    if(!G)throw new Error(L.id+" bantta üretilemedi");
+    const target=G.owner.filter(o=>o!==-1).length, ds=dirStats(G), sm=summary(L), fs=fillStats(L,G);
+    const sp=[...L.words.join("")], wordSpecial=sp.filter(ch=>SPECIAL.has(ch)).length/sp.length;
+    const {id,...rest}=L;
+    out.push({id,...rest,letters:G.letters.join(""),p:G.placements.map(pl=>[pl.word,pl.cells[0],pl.dir[0],pl.dir[1]]),
+      meta:{target,ratio:+(target/(L.cols*L.rows)).toFixed(3),D:+sm.D.toFixed(1),D2:+sm.D2.toFixed(1),rev:+ds.rev.toFixed(2),diag:+ds.diag.toFixed(2),xCross:xCount(G,L.cols),
+        fillOverlap:+fs.overlap.toFixed(2),fillSpecial:+fs.special.toFixed(2),wordSpecial:+wordSpecial.toFixed(2),seed:F.seed+n*10000+s}});
+    console.error(`L${String(n).padEnd(3)} ${tier} ${L.name.padEnd(11)} ${L.cols}×${L.rows} K=${L.words.length} Σ=${sumLen(L.words)} p=${sm.p.toFixed(2)} D2=${sm.D2.toFixed(1)} çapraz=${ds.diag.toFixed(2)} ters=${ds.rev.toFixed(2)} dolgu=${L.fillMode||"freq"} örtüşme=${fs.overlap.toFixed(2)} özel=${wordSpecial.toFixed(2)} seedOffset=${s}`);
+  }
+  process.stdout.write(`// Funnel levelları L1–${count} (docs/levels/funnel-v01.md). Üretim: tools/bake.js funnel tools/funnel-v01.json, seed ${F.seed}+n·10000+offset.\n`);
+  process.stdout.write("window.FUNNEL_DATA="+JSON.stringify({seed:F.seed,sequence:F.sequence,levels:out})+";\n");
 }else if(mode==="pack"){
-  // test-levels.js → tapwords-level/1 JSON (docs/levels/level-format.md)
+  // test-levels.js | funnel-levels.js → tapwords-level/1 JSON (docs/levels/level-format.md)
   const src=require("fs").readFileSync(process.argv[3]||"test-levels.js","utf8"), window={}; eval(src);
-  const D=window.TEST_LEVEL_DATA, DIRNAME={"0,1":"E","1,0":"S","1,1":"SE","1,-1":"SW","0,-1":"W","-1,0":"N","-1,-1":"NW","-1,1":"NE"};
+  const D=window.TEST_LEVEL_DATA||window.FUNNEL_DATA, isFunnel=!window.TEST_LEVEL_DATA, DIRNAME={"0,1":"E","1,0":"S","1,1":"SE","1,-1":"SW","0,-1":"W","-1,0":"N","-1,-1":"NW","-1,1":"NE"};
   const levels=D.levels.map((L,i)=>{
     const letters=[...L.letters], n=L.cols*L.rows, owner=new Array(n).fill(-1);
     const placements=L.p.map(([wi,start,dr,dc],pid)=>{
@@ -238,15 +267,15 @@ if(mode==="validate"){
     });
     const fill=[];for(let idx=0;idx<n;idx++)if(owner[idx]===-1)fill.push([Math.floor(idx/L.cols),idx%L.cols]);
     const grid=[];for(let r=0;r<L.rows;r++)grid.push(letters.slice(r*L.cols,(r+1)*L.cols).join(""));
-    return {id:L.id,index:51+i,lang:"tr",tier:"test",series:L.series,cols:L.cols,rows:L.rows,per:L.per,lives:5,hints:3,
-      ...(L.noDiagCross?{noDiagCross:true}:{}),...(L.rev!==undefined?{reversedWeight:L.rev}:{}),fillMode:L.fillMode||"freq",
+    return {id:L.id,index:isFunnel?i+1:51+i,lang:"tr",tier:isFunnel?L.tier:"test",...(L.series?{series:L.series}:{}),cols:L.cols,rows:L.rows,per:L.per,lives:L.lives??5,hints:3,
+      ...(L.noDiagCross?{noDiagCross:true}:{}),...(L.rev!==undefined?{reversedWeight:L.rev}:{}),...(L.diag!==undefined?{diagonalWeight:L.diag}:{}),fillMode:L.fillMode||"freq",
       words:L.words,grid,placements,fill,
       meta:{theme:L.name,targetCells:n-fill.length,fillCells:fill.length,ratio:L.meta.ratio,D:L.meta.D,D2:L.meta.D2,reversedShare:L.meta.rev,diagonalShare:L.meta.diag,xCross:L.meta.xCross,
         ...(L.meta.fillOverlap!==undefined?{fillOverlap:L.meta.fillOverlap,fillSpecial:L.meta.fillSpecial,wordSpecial:L.meta.wordSpecial}:{}),seed:L.meta.seed}};
   });
   const pkg={format:"tapwords-level/1",package:process.argv[4]||"param-tests",lang:"tr",generatedAt:new Date().toISOString().slice(0,10),
-    source:"tools/bake.js bake (seed "+D.seed+")",design:"docs/levels/param-tests-v01.md, param-tests-v02.md",schema:"docs/levels/level-format.md",
-    constants:{lives:5,hints:3,fillAlphabet:"tr-frequency"},levels};
+    source:"tools/bake.js "+(isFunnel?"funnel":"bake")+" (seed "+D.seed+")",design:isFunnel?"docs/levels/funnel-v01.md":"docs/levels/param-tests-v01.md, param-tests-v02.md, param-tests-v03.md",schema:"docs/levels/level-format.md",
+    ...(isFunnel?{sequence:D.sequence}:{}),constants:{lives:isFunnel?3:5,hints:3,fillAlphabet:"tr-frequency"},levels};
   process.stdout.write(JSON.stringify(pkg,null,1).replace(/\[\n\s+(-?\d+),\n\s+(-?\d+)\n\s+\]/g,"[$1,$2]"));
   console.error(levels.length+" level paketlendi");
 }else if(mode==="check"){

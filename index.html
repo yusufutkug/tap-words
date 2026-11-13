@@ -87,6 +87,7 @@ button:focus-visible{outline:2px solid var(--brown-x);outline-offset:2px}
 .levels{display:flex;gap:8px;flex-wrap:wrap;max-height:45vh;overflow-y:auto;padding:2px}
 .levels button{padding:8px 14px;font-size:.9rem;border-radius:999px;background:var(--beige);color:var(--fg)}
 .levels button.on{background:var(--brown);color:#fff}
+.levels h4{flex-basis:100%;margin:8px 0 0;font-size:.8rem;color:var(--brown-x);opacity:.8}
 .toggle{display:inline-flex;align-items:center;gap:10px;font-size:.9rem;cursor:pointer;user-select:none}
 .toggle input{position:absolute;opacity:0;width:0;height:0}
 .toggle .tr{width:40px;height:22px;border-radius:999px;background:var(--beige-d);position:relative;transition:background .2s}
@@ -125,12 +126,15 @@ button:focus-visible{outline:2px solid var(--brown-x);outline-offset:2px}
 </div>
 
 <script src="levels.js"></script>
+<script src="funnel-levels.js"></script>
 <script src="test-levels.js"></script>
 <script>
-// Board parameters are per level: LEVELS[i].cols/rows/per override these defaults (set in newGame).
-let COLS=20, ROWS=25, PER=5; const MAXL=5, DEF={cols:20,rows:25,per:5};
-// 50 themed levels, 10 words each (4–8 letters). Same global parameters; only the word list changes.
-const LEVELS=[
+// Board parameters are per level: LEVELS[i].cols/rows/per/lives override these defaults (set in newGame).
+let COLS=20, ROWS=25, PER=5, LIVES=5; const DEF={cols:20,rows:25,per:5,lives:5};
+// Ana akış: funnel-levels.js (docs/levels/funnel-v01.md; tier dizisi + tier parametre seti + tema havuzu, can 3). Yoksa eski 50 level ana akış olur.
+const LEVELS=(window.FUNNEL_DATA?.levels??[]).map(f=>({name:f.name,words:f.words,cols:f.cols,rows:f.rows,per:f.per,lives:f.lives,fillMode:f.fillMode,rev:f.rev,diag:f.diag,tier:f.tier,funnel:f}));
+// Arşiv: 50 temalı level, 10 kelime (4–8 harf), 20×25, PER 5, can 5 (levels.js pişmiş tahtalar). Funnel varsa menüde "Arşiv" olarak listelenir.
+const ARCHIVE=[
   {name:"Karışık",    words:["KALEM","ELMA","DENİZ","KİTAP","GÜNEŞ","ÇİÇEK","BALIK","YILDIZ","ORMAN","KÖPEK"]},
   {name:"Mutfak",     words:["EKMEK","PEYNİR","ÇORBA","SALATA","ZEYTİN","BİBER","KAHVE","ŞEKER","LİMON","PİLAV"]},
   {name:"Hayvanlar",  words:["ASLAN","KAPLAN","TAVŞAN","KARTAL","YILAN","KEDİ","KOYUN","ÖRDEK","TİLKİ","KUZU"]},
@@ -183,6 +187,8 @@ const LEVELS=[
   {name:"Düğün",      words:["NİŞAN","DAMAT","NİKAH","YÜZÜK","PASTA","DAVET","TAKI","ÇİÇEK","GELİNLİK","MÜZİK"]},
 ];
 // Parameter-exploration test levels (test-levels.js, docs/levels/param-tests-v01.md): K=6, can 5; PER / uzunluk / board birer birer değişir.
+const FUNNEL_N=LEVELS.length;
+ARCHIVE.forEach((a,i)=>LEVELS.push({...a,arch:i}));
 const BASE_N=LEVELS.length;
 (window.TEST_LEVEL_DATA?.levels??[]).forEach(t=>LEVELS.push({name:`${t.id} · ${t.name}`,words:t.words,cols:t.cols,rows:t.rows,per:t.per,noDiagCross:!!t.noDiagCross,rev:t.rev,fillMode:t.fillMode,test:t}));
 let level=0, WORDS=LEVELS[0].words;
@@ -197,6 +203,7 @@ const inb=(r,c)=>r>=0&&r<ROWS&&c>=0&&c<COLS;
 let NOX=false; // LEVELS[i].noDiagCross: SE ve SW çaprazlar hücre paylaşmadan görsel X yapamaz (tools/bake.js ile aynı kural)
 let REV; // LEVELS[i].rev: ters yazım olasılığı (0–1); undefined → DIRS dizisi (0,20)
 let FILLMODE="freq"; // LEVELS[i].fillMode: freq | disjoint | target | bigram (tools/bake.js ile aynı)
+let DIAG; // LEVELS[i].diag: çapraz eksen olasılığı (0–1); undefined → dört eksen eşit. 0 → FTUE (yalnızca yatay/dikey)
 const AXES=[[0,1],[1,0],[1,1],[1,-1]];
 const SPECIAL=new Set([..."İŞĞÇÖÜ"]);
 function fillAlphabet(){
@@ -223,7 +230,10 @@ function crossesDiag(cells,dr,dc,owner,placements){
 }
 
 function generate(){
-  const pickDir=()=>{if(REV===undefined)return DIRS[rnd(DIRS.length)];const [dr,dc]=AXES[rnd(4)];return Math.random()<REV?[-dr,-dc]:[dr,dc]};
+  const pickDir=()=>{
+    if(REV===undefined&&DIAG===undefined)return DIRS[rnd(DIRS.length)];
+    const rev=REV??0.2, [dr,dc]=DIAG===undefined?AXES[rnd(4)]:(Math.random()<DIAG?AXES[2+rnd(2)]:AXES[rnd(2)]);
+    return Math.random()<rev?[-dr,-dc]:[dr,dc]};
   const ALPHA_F=fillAlphabet(), BG=FILLMODE==="bigram"?bigramMap():null;
   const pickFill=(letters,idx)=>{
     if(BG){const r=Math.floor(idx/COLS),c=idx%COLS,cands=[];
@@ -299,9 +309,9 @@ function generate(){
   }
   throw new Error("Board could not be generated");
 }
-// Pre-baked tahta (levels.js, ADR-0005 mock). Yoksa veya boyut uymuyorsa runtime generate().
+// Pre-baked tahta (funnel-levels.js / levels.js / test-levels.js; ADR-0005). Yoksa veya boyut uymuyorsa runtime generate().
 function baked(lv){
-  const T=LEVELS[lv].test, D=T?null:window.LEVEL_DATA, L=T??D?.levels?.[lv];
+  const E=LEVELS[lv], T=E.test||E.funnel, D=T?null:window.LEVEL_DATA, L=T??(E.arch!==undefined?D?.levels?.[E.arch]:null);
   const cols=T?T.cols:D?.cols, rows=T?T.rows:D?.rows;
   if(!L||cols!==COLS||rows!==ROWS||[...L.letters].length!==ROWS*COLS)return null;
   const letters=[...L.letters], owner=new Array(ROWS*COLS).fill(-1);
@@ -324,11 +334,11 @@ function newGame(state,lv){
   if(lv!==undefined)level=lv; if(state&&state.level!==undefined)level=state.level;
   try{localStorage.setItem("ka-level",level)}catch(e){}
   const L=LEVELS[level]; WORDS=L.words;
-  COLS=L.cols??DEF.cols; ROWS=L.rows??DEF.rows; PER=L.per??DEF.per; NOX=!!L.noDiagCross; REV=L.rev; FILLMODE=L.fillMode??"freq";
+  COLS=L.cols??DEF.cols; ROWS=L.rows??DEF.rows; PER=L.per??DEF.per; LIVES=L.lives??DEF.lives; NOX=!!L.noDiagCross; REV=L.rev; DIAG=L.diag; FILLMODE=L.fillMode??"freq";
   renderLevels();
   G=state?.G??baked(level)??generate();
   found=state?.found??new Array(G.placements.length).fill(false);
-  lives=state?.lives??MAXL; over=false; hints=state?.hints??MAXH;
+  lives=state?.lives??LIVES; over=false; hints=state?.hints??MAXH;
   startedAt=state?.startedAt??Date.now(); wrongTaps=state?.wrongTaps??0; wrongAt=state?.wrongAt??[];
   renderWords(); renderLives(); buildGrid(); fit(); renderHint();
   vp.querySelector(".overlay")?.remove();
@@ -336,15 +346,16 @@ function newGame(state,lv){
 function renderLevels(){
   $("lvlNum").textContent=level+1;
   $("theme").textContent=LEVELS[level].name.toLocaleUpperCase("tr");
-  const label=(l,i)=>l.test?`${l.name} · ${l.cols}×${l.rows} · ×${l.per} · ${l.test.series}`:`${i+1} · ${l.name}`;
-  $("levels").innerHTML=LEVELS.map((l,i)=>`<button class="${i===level?"on":""}" data-lv="${i}">${label(l,i)}</button>`).join("");
+  const label=(l,i)=>l.test?`${l.name} · ${l.cols}×${l.rows} · ×${l.per} · ${l.test.series}`:l.funnel?`${i+1} · ${l.name} · ${l.tier} · D₂ ${l.funnel.meta.D2}`:`${l.arch!==undefined&&FUNNEL_N?"Arşiv "+(l.arch+1):i+1} · ${l.name}`;
+  const sep=i=>(FUNNEL_N&&i===FUNNEL_N)?`<h4>Arşiv (20×25, can 5)</h4>`:(i===BASE_N&&BASE_N<LEVELS.length)?`<h4>Parametre testleri</h4>`:"";
+  $("levels").innerHTML=LEVELS.map((l,i)=>sep(i)+`<button class="${i===level?"on":""}" data-lv="${i}">${label(l,i)}</button>`).join("");
   $("levels").querySelectorAll("button").forEach(b=>b.onclick=()=>{closeMenu();newGame(null,+b.dataset.lv)});
 }
 function renderWords(){
   $("words").innerHTML=WORDS.map((w,i)=>`<span class="chip" id="chip${i}">${w}<span class="badge cnt">${PER}</span></span>`).join("");
 }
 function renderLives(){
-  $("lives").innerHTML=Array.from({length:MAXL},(_,i)=>i).map(i=>`<svg class="heart${i<lives?"":" lost"}" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 21s-7.5-4.6-9.6-9.2C.9 8.4 3 4.5 6.8 4.5c2 0 3.6 1.2 5.2 3 1.6-1.8 3.2-3 5.2-3 3.8 0 5.9 3.9 4.4 7.3C19.5 16.4 12 21 12 21z"/></svg>`).join("");
+  $("lives").innerHTML=Array.from({length:LIVES},(_,i)=>i).map(i=>`<svg class="heart${i<lives?"":" lost"}" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 21s-7.5-4.6-9.6-9.2C.9 8.4 3 4.5 6.8 4.5c2 0 3.6 1.2 5.2 3 1.6-1.8 3.2-3 5.2-3 3.8 0 5.9 3.9 4.4 7.3C19.5 16.4 12 21 12 21z"/></svg>`).join("");
 }
 function buildGrid(){
   grid.style.gridTemplateColumns=`repeat(${COLS},${base}px)`;
@@ -488,7 +499,7 @@ function finish(win){
   over=true; renderHint();
   const n=found.filter(Boolean).length;
   const ms=Date.now()-startedAt, sec=Math.round(ms/1000), dur=`${Math.floor(sec/60)}:${String(sec%60).padStart(2,"0")}`;
-  logLevel({level:level+1,name:LEVELS[level].name,cols:COLS,rows:ROWS,per:PER,fillMode:FILLMODE,rev:REV??0.2,words:WORDS.length,placements:found.length,found:n,ms,wrongTaps,wrongAt:[...wrongAt],hintsUsed:MAXH-hints,result:win?"win":"fail",at:new Date().toISOString()});
+  logLevel({level:level+1,name:LEVELS[level].name,tier:LEVELS[level].tier??(LEVELS[level].test?"test":"archive"),D2:LEVELS[level].funnel?.meta.D2??LEVELS[level].test?.meta.D2,lives:LIVES,cols:COLS,rows:ROWS,per:PER,fillMode:FILLMODE,rev:REV??0.2,diag:DIAG,words:WORDS.length,placements:found.length,found:n,ms,wrongTaps,wrongAt:[...wrongAt],hintsUsed:MAXH-hints,result:win?"win":"fail",at:new Date().toISOString()});
   const d=document.createElement("div");d.className="overlay";
   d.innerHTML=`<div class="card"><h2>${win?"Hepsini buldun!":"Canların bitti"}</h2><p>${n} / ${found.length} kelime bulundu${win?`, ${lives} can kaldı`:""}.</p><p>Süre: <b>${dur}</b> · Yanlış: <b>${wrongTaps}</b> · İpucu: <b>${MAXH-hints}</b></p>${win&&level<LEVELS.length-1?`<button id="next">Sonraki seviye</button>`:""}<button id="again">${win&&level===LEVELS.length-1?"Baştan başla":"Tekrar oyna"}</button></div>`;
   vp.appendChild(d);

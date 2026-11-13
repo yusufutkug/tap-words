@@ -60,14 +60,15 @@
 | `id` | string | Paket içinde tekil. Ana akışta `"L0001"` biçimi önerilir; testte `T00`. |
 | `index` | int | Oyuncuya gösterilen level numarası (1 tabanlı). Prototipte 50 ana level + test → 51…62. |
 | `lang` | string | Kelimelerin dili. |
-| `tier` | string | Zorluk kademesi (`F R N H S`, `curve-v02.md`) veya `"test"`. Loader kullanmaz; analitik ve event seçimi için. |
+| `tier` | string | Zorluk kademesi (`F R N H S`, `funnel-v01.md` tier seti) veya `"test"`. Loader kullanmaz; analitik ve event seçimi için. Funnel paketinde paket düzeyinde `sequence` (tier dizisi) de bulunur. |
 | `series` | string? | Yalnızca test paketlerinde: hangi parametre serisi. |
 | `cols`, `rows` | int | Tahta boyutu. `grid.length === rows`, her satır `cols` karakter. |
 | `per` | int | Her kelimenin kopya sayısı. `placements` içinde her `wordIndex` tam `per` kez geçer. (Netleşenler'deki "kelimeye göre değişen kopya" gelirse `per` yerine `copies[]` dizisi eklenir; `per` o zaman kaldırılır.) |
-| `lives`, `hints` | int | Level içi can ve ipucu. ADR-0004 → 3 can; test paketinde 5. |
+| `lives`, `hints` | int | Level içi can ve ipucu. ADR-0004 → 3 can (funnel paketi); test paketinde 5. |
 | `noDiagCross` | bool? | `true` → tahtada SE ve SW çaprazlar görsel X yapmaz (generator kuralı, `param-tests-v02.md`). Loader kullanmaz; üretim bilgisi. Yoksa `false`. |
 | `fillMode` | string | Dolgu alfabesi modu (`param-tests-v03.md`): `freq` TR harf frekansı (varsayılan) · `disjoint` yalnızca hedef kelimelerde geçmeyen harfler · `target` yalnızca hedef kelimelerin harfleri (hedefteki frekansla) · `bigram` hedef kelimelerde geçen ikililerle zincirlenmiş hedef harfleri. Loader kullanmaz; üretim bilgisi. |
 | `reversedWeight` | float? | Generator'a verilen ters yazım olasılığı (0–1). Yoksa 0,20 (ileri 4 : ters 1). Gerçekleşen pay `meta.reversedShare`. |
+| `diagonalWeight` | float? | Generator'a verilen çapraz eksen olasılığı (0–1). Yoksa 0,5 (dört eksen eşit). `0` → yalnızca yatay/dikey (FTUE L1–2, `funnel-v01.md`). Gerçekleşen pay `meta.diagonalShare`. |
 | `words` | string[] | Chip sırası. Büyük harf, dilin kendi büyük harfleri (`İ`, `I`). Palindrom yok; hiçbir kelime (veya tersi) başka bir kelimenin alt dizisi değil (generator kısıtı, `mechanic.md`). |
 | `grid` | string[] | `rows` adet satır; her satır `cols` adet **Unicode karakter** (UTF-16 code unit değil; Unity'de `StringInfo`/`EnumerateRunes` ile sayılmalı). |
 | `placements[]` | object[] | Her kopya bir kayıt. `word` ve `wordIndex` ikisi de var (okunabilirlik + hız). `row/col` ilk harf; `dir` 8 yön (`E S SE SW W N NW NE`), `dr/dc` aynı bilginin sayısal hali; `cells` her harfin koordinatı, kelime sırasıyla. **Yerleşimler kesişmez**: bir hücre en fazla bir yerleşime aittir. |
@@ -99,7 +100,7 @@ Hata → level atlanmaz, paket reddedilir (üretim hatası, oyuncu hatası deği
 
 ## Prototip ile ilişki
 
-Prototip (`index.html`) hâlâ kompakt formatı okur (`levels.js`, `test-levels.js`: `letters` düz dizi + `p = [wordIdx, startIdx, dr, dc]`). Bu JSON ondan türetilir: `node tools/bake.js pack test-levels.js <paket-adı> > levels/<dosya>.json` (2026-11-11'den itibaren; `tools/bake.js` ADR-0005'in offline generator'ıdır: `validate`, `bake`, `pack`, `check` modları). İki kaynak aynı seed'den geldiği için tahtalar birebir aynıdır. Paketler: `levels/test-levels-v01.json` (T00–T11), `levels/test-levels-v02.json` (T00–T11 + T09X, T12–T15), `levels/test-levels-v03.json` (öncekiler + T00b, T16–T22; `fillMode`, `reversedWeight`, `meta.fillOverlap/fillSpecial/wordSpecial` ile).
+Prototip (`index.html`) hâlâ kompakt formatı okur (`levels.js`, `test-levels.js`: `letters` düz dizi + `p = [wordIdx, startIdx, dr, dc]`). Bu JSON ondan türetilir: `node tools/bake.js pack test-levels.js <paket-adı> > levels/<dosya>.json` (2026-11-11'den itibaren; `tools/bake.js` ADR-0005'in offline generator'ıdır: `validate`, `bake`, `pack`, `check` modları). İki kaynak aynı seed'den geldiği için tahtalar birebir aynıdır. Paketler: `levels/test-levels-v01.json` (T00–T11), `levels/test-levels-v02.json` (T00–T11 + T09X, T12–T15), `levels/test-levels-v03.json` (öncekiler + T00b, T16–T22; `fillMode`, `reversedWeight`, `meta.fillOverlap/fillSpecial/wordSpecial` ile), **`levels/funnel-v01.json`** (ana akış L1–30, `node tools/bake.js funnel tools/funnel-v01.json > funnel-levels.js` → `pack funnel-levels.js funnel-v01`; can 3, `tier`, `diagonalWeight`, paket `sequence`).
 
 ## Açık noktalar
 

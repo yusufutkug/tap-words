@@ -1,0 +1,58 @@
+{
+  "$comment": "Funnel v01 kaynağı (docs/levels/funnel-v01.md). Amaze GO! modeli: level numarası → tier (sequence), tier → parametre seti (tiers), kelime listesi tier havuzundan sırayla (pool). Üretim: node tools/bake.js funnel tools/funnel-v01.json > funnel-levels.js",
+  "seed": 20261113,
+  "sequence": ["FRNNHRHRNS", "RNHRNHRNNS"],
+  "tiers": {
+    "F": { "cols": 12, "rows": 17, "per": 5, "lives": 3, "fillMode": "disjoint" },
+    "R": { "cols": 14, "rows": 19, "per": 5, "lives": 3, "fillMode": "freq" },
+    "N": { "cols": 15, "rows": 21, "per": 5, "lives": 3, "fillMode": "freq" },
+    "H": { "cols": 15, "rows": 21, "per": 5, "lives": 3, "fillMode": "freq" },
+    "S": { "cols": 16, "rows": 23, "per": 5, "lives": 3, "fillMode": "bigram" }
+  },
+  "overrides": {
+    "1": { "diag": 0, "rev": 0 },
+    "2": { "diag": 0 }
+  },
+  "pool": {
+    "F": [
+      { "theme": "Meyveler", "words": ["KARPUZ", "KAYISI", "ÇİLEK", "KİRAZ"] }
+    ],
+    "R": [
+      { "theme": "Renkler", "words": ["KIRMIZI", "PEMBE", "YEŞİL", "SİYAH", "BEYAZ"] },
+      { "theme": "Okul", "words": ["KALEM", "DEFTER", "SİLGİ", "KİTAP", "CETVEL"] },
+      { "theme": "Taşıtlar", "words": ["ARABA", "UÇAK", "KAMYON", "VAPUR", "TRAMVAY"] },
+      { "theme": "Sebzeler", "words": ["SOĞAN", "HAVUÇ", "LAHANA", "PIRASA", "MARUL"] },
+      { "theme": "Müzik", "words": ["GİTAR", "PİYANO", "KEMAN", "DAVUL", "ŞARKI"] },
+      { "theme": "Tatlılar", "words": ["HELVA", "LOKUM", "PASTA", "AŞURE", "BAKLAVA"] },
+      { "theme": "Uzay", "words": ["YILDIZ", "ROKET", "UYDU", "DÜNYA", "GEZEGEN"] },
+      { "theme": "Kahvaltı", "words": ["YUMURTA", "REÇEL", "SUCUK", "SİMİT", "BÖREK"] },
+      { "theme": "Böcekler", "words": ["SİNEK", "PİRE", "KELEBEK", "KARINCA", "AKREP"] }
+    ],
+    "N": [
+      { "theme": "Hayvanlar", "words": ["ASLAN", "YILAN", "KOYUN", "TİLKİ", "GEYİK", "ZEBRA"] },
+      { "theme": "Sofra", "words": ["EKMEK", "ÇORBA", "KAHVE", "ŞEKER", "LİMON", "BİBER"] },
+      { "theme": "Deniz", "words": ["BALIK", "DALGA", "MARTI", "KAYIK", "MİDYE", "YOSUN"] },
+      { "theme": "Spor", "words": ["FUTBOL", "TENİS", "YÜZME", "HOKEY", "JUDO", "GOLF"] },
+      { "theme": "Şehir", "words": ["SOKAK", "CADDE", "PAZAR", "BANKA", "KÖPRÜ", "DURAK"] },
+      { "theme": "Kuşlar", "words": ["SERÇE", "KARGA", "KUMRU", "ŞAHİN", "TAVUK", "ÖRDEK"] },
+      { "theme": "Oyuncaklar", "words": ["BEBEK", "TOPAÇ", "BALON", "ROBOT", "KUKLA", "PELUŞ"] },
+      { "theme": "İçecekler", "words": ["AYRAN", "SALEP", "GAZOZ", "ŞERBET", "KOLA", "BOZA"] },
+      { "theme": "Doğa", "words": ["NEHİR", "BULUT", "ÇAYIR", "ORMAN", "YAMAÇ", "SAHİL"] },
+      { "theme": "Banyo", "words": ["SABUN", "HAVLU", "FIRÇA", "TARAK", "LAVABO", "AYNA"] },
+      { "theme": "Aletler", "words": ["PENSE", "MAKAS", "BALTA", "RENDE", "KAZMA", "KESKİ"] }
+    ],
+    "H": [
+      { "theme": "Ev", "words": ["MASA", "KAPI", "HALI", "SOBA", "ÇATI", "ODUN"] },
+      { "theme": "Vücut", "words": ["KAFA", "OMUZ", "AYAK", "KALP", "ALIN", "ÇENE"] },
+      { "theme": "Çiftlik", "words": ["İNEK", "EŞEK", "KEÇİ", "AHIR", "HOROZ", "SAMAN"] },
+      { "theme": "Tatil", "words": ["PLAJ", "OTEL", "GEZİ", "KAMP", "ÇADIR", "VALİZ"] },
+      { "theme": "Masallar", "words": ["PERİ", "CÜCE", "ŞATO", "TAHT", "SARAY", "SİHİR"] },
+      { "theme": "Giysi", "words": ["ATKI", "BERE", "ŞORT", "MONT", "ÇORAP", "KEMER"] }
+    ],
+    "S": [
+      { "theme": "Aile", "words": ["ANNE", "BABA", "DEDE", "NİNE", "HALA", "AMCA", "DAYI"] },
+      { "theme": "Mutfak", "words": ["TAVA", "KASE", "KUPA", "OCAK", "ÇATAL", "KAŞIK", "BIÇAK"] },
+      { "theme": "Sınıf", "words": ["SIRA", "BOYA", "DERS", "TEST", "SINIF", "TAHTA", "ÇANTA"] }
+    ]
+  }
+}

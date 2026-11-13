@@ -41,3 +41,4 @@ Prototipte ne değişecek (/prototype için görev), hangi dokümanlar güncelle
 | [ADR-0007](ADR-0007-cikis-event-seti.md) | Çıkış event seti: Daily Challenge, Daily Goals, Daily Rush (merdiven), coin mini-oyunu, haftalık kavanoz koleksiyonu | Kabul |
 | [ADR-0008](ADR-0008-zorluk-indeksi.md) | Zorluk indeksi D₂ = K·(1+0,5(PER−1))·(1−p); p kaldıraç, tier'lar D₂ bandıyla; kısa kelime yolu; K 6 taban, PER 5 sabit (rev. 12 Kas) | Kabul |
 | [ADR-0009](ADR-0009-tahta-boyutlari.md) | Tahta boyutları telefon oranında (≈ 1,4): F 12×17, R 14×19, N/H 15×21, S 16×23; 17×26 event rezervi; sütun değişken, küçük tahta = büyük hücre | Kabul |
+| [ADR-0010](ADR-0010-funnel-modeli.md) | Funnel: Amaze GO! modeli — tier dizisi `FRNNHRHRNS` + `RNHRNHRNNS` döngüsü, tier parametre seti (F `disjoint`, S `bigram`, özel ≤ %10 H/S, can 3, ters 0,20 sabit), tema havuzu; elle level tablosu yok | **Taslak** (playtest sonrası) |
