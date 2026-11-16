@@ -1,10 +1,10 @@
-# Funnel A / B / C — 100 Levellık Üç Varyant (10'luk Set Desenleri)
+# Funnel A / B / C / D — 100 Levellık Varyantlar (10'luk Set Desenleri)
 
-- Tarih / sürüm: 2026-11-13 / v01 (taslak; K1 "funnel kararı" için playtest adayları)
+- Tarih / sürüm: 2026-11-13 / v01 (taslak; K1 "funnel kararı" için playtest adayları); **D eklendi 2026-11-16** (A/B/C oynanış: "çok zor")
 - Alan: level-design (ana sohbet)
 - Model: `funnel-v01.md` (Amaze GO!: tier dizisi + tier parametre seti + tema havuzu; ADR-0010 taslak). Bu doküman modelin **üç farklı dizi/ayar** ile 100 levele uygulanmasıdır; model değişmez.
-- Veri: `tools/funnel-a.json`, `-b.json`, `-c.json` (dizi + tier seti) + ortak havuz `tools/funnel-pool.json` (116 liste) → `node tools/bake.js funnel tools/funnel-<x>.json > funnel-<x>-levels.js` → `node tools/bake.js pack funnel-<x>-levels.js funnel-<x> > levels/funnel-<x>.json`.
-- Prototip: `index.html?funnel=a|b|c` (son seçim hatırlanır; menüde Funnel satırından geçiş). Her funnel kendi kaldığı leveli saklar.
+- Veri: `tools/funnel-a.json`, `-b.json`, `-c.json`, `-d.json` (dizi + tier seti) + ortak havuz `tools/funnel-pool.json` (166 liste; 50'si D'nin K tier'ı için) → `node tools/bake.js funnel tools/funnel-<x>.json > funnel-<x>-levels.js` → `node tools/bake.js pack funnel-<x>-levels.js funnel-<x> > levels/funnel-<x>.json`.
+- Prototip: `index.html?funnel=a|b|c|d` (son seçim hatırlanır; menüde Funnel satırından geçiş). Her funnel kendi kaldığı leveli saklar.
 - Karar: üçü de oynanır, biri (veya karması) ADR-0010'a yazılır.
 
 ## Öneri
@@ -74,24 +74,56 @@ Tek ve çift setler dönüşümlü: **sakin set** `R N N R H R N N H S` (1 S son
 | 81–90 | `RNNRHRNNHS` | Meslekler (R−) · Oyuncaklar (N) · Bilim (N) · Düğün (R−) · Çalgılar (H) · Okul (R−) · Aletler (N) · Çalışanlar (N) · Ofis (H) · Hisler (S) |
 | 91–100 | `NHRSNRHNRS` | Gezegenler (N) · Sıfatlar (H) · Mobilya (R−) · Kent (S) · İçecekler (N) · Ülkeler (R−) · Vücut (H) · Krallık (N) · Matematik (R−) · Fotoğraf (S) |
 
+### D — Hafif (16 Kas)
+
+Utku'nun A/B/C oynanışından sonra ("çok zor olmuş") eklendi. Her 10'luk set **`K O K O Z K O K ÇZ K`**: 5 kolay · 3 orta · 1 zor · 1 çok zor — taban tier N yok, ağırlık kolayda. **Z = H, ÇZ = S** (K, Σ, p bandı, dolgu aynen); **K ve O** yeni kolay/orta tier'lar: F ve R parametreleri, havuz F-bandı (K) ve R havuzu (O). Dört tahta da bir satır kısaltıldı: **12×16 / 14×18 / 15×20 / 16×21** (yalnızca D; aşağıda ADR-0009 notu). Küçük tahta + aynı kelime kütlesi → hedef hücre oranı yükselir ("oranlar biraz artsın"): K 0,52–0,60, O 0,52–0,56, Z 0,40–0,43, ÇZ 0,43–0,46. Sayım K 50 · O 30 · Z 10 · ÇZ 10; D₂ ortalaması **7,0** (A 9,4); set D₂ toplamı 70 (A 94, −%25); tahmini süre ≈ 2 sa 10 dk. FTUE: L1 `diag 0, rev 0, disjoint`; L2 `diag 0`; ilk Z L5, ilk ÇZ **L9** (sonra K ile nefes). Dizide ÇZ kodu `X`.
+
+| Tier | Grid | K | Harf / Σ | p | D₂ | Dolgu | Havuz |
+|---|---|---|---|---|---|---|---|
+| **K** | 12×16 (192) | 4 | 4–6 / 20–23 | 0,52–0,60 | 4,8–5,8 | `freq` (L1 `disjoint`) | `K` (50 liste: 41'i N listelerinden 2 kelime düşülerek türetildi + 9 yeni) |
+| **O** | 14×18 (252) | 5 | 4–7 / 26–28 | 0,52–0,56 | 6,7–7,3 | `freq` | `R` |
+| **Z** | 15×20 (300) | 6 | 4–5 / 24–26 | 0,40–0,43 | 10,2–10,8 | `freq` | `H` |
+| **ÇZ** | 16×21 (336) | 7 | 4–5 / 28–31 | 0,43–0,46 | 11,3–11,9 | `bigram` | `S` |
+
+Z/ÇZ D₂'si H/S bantlarının (10,4–11 / 12–13) biraz altına iner — tahta küçüldüğü, K/Σ aynı kaldığı için; "zor ve çok zor buradaki gibi" isteği parametre düzeyinde korunur, fail hissi playtest'te ölçülür. K havuzu N'den türetildiği için **K ile N aynı funnel'da kullanılamaz** (generator kelime tekilliğini funnel'ın çektiği havuzlarla sınırlı denetler).
+
+| Level | Temalar |
+|---|---|
+| 1–10 | Trafik (K) · Hava (O) · Deniz (K) · Okul (O) · Coğrafya (Z) · Kanatlılar (K) · Ülkeler (O) · Canlılar (K) · Bilgisayar (ÇZ) · Sahil (K) |
+| 11–20 | Köy (K) · Şehirler (O) · Çay Saati (K) · Çöl (O) · Vücut (Z) · Pastane (K) · Zaman (O) · Posta (K) · Makamlar (ÇZ) · Bilim (K) |
+| 21–30 | Kafe (K) · Tatlılar (O) · Manav (K) · Müzik (O) · Araç (Z) · Berber (K) · Sebzeler (O) · Mahalle (K) · Fotoğraf (ÇZ) · Doğum Günü (K) |
+| 31–40 | Kış (K) · Hastane (O) · Yemekler (K) · Sinema (O) · Masallar (Z) · Havalimanı (K) · Fırın (O) · Kiler (K) · Araçlar (ÇZ) · Konser (K) |
+| 41–50 | Çalışanlar (K) · Meslekler (O) · Krallık (K) · Ağaçlar (O) · Çiftlik (Z) · Olimpiyat (K) · Matematik (O) · Oyuncaklar (K) · Renk Paleti (ÇZ) · İnternet (K) |
+| 51–60 | Sofra (K) · Mobilya (O) · Dağ (K) · Düğün (O) · Evcil Hayvan (Z) · Tonlar (K) · Sirk (O) · Eczane (K) · Mutfak (ÇZ) · Gardırop (K) |
+| 61–70 | Futbol (K) · Duygular (O) · Aletler (K) · Oyunlar (O) · Yönler (Z) · Salon (K) · Baharat (O) · Hayvanlar (K) · Eylemler (ÇZ) · El İşi (K) |
+| 71–80 | Şehir (K) · Uzay (O) · Spor (K) · Renkler (O) · Tatil (Z) · Gezegenler (K) · Kahvaltı (O) · Park (K) · Kent (ÇZ) · Finans (K) |
+| 81–90 | Banyo (K) · Teknoloji (O) · Tiyatro (K) · Liman (O) · Tamirat (Z) · İçecekler (K) · Bahçe (O) · Piknik (K) · Ahır (ÇZ) · Kuşlar (K) |
+| 91–100 | Dersler (K) · Taşıtlar (O) · Aylar (K) · Kitap (O) · Nitelikler (Z) · Doğa (K) · Market (O) · Meyve Sepeti (K) · Vakit (ÇZ) · Okyanus (K) |
+
+**ADR-0009 yeniden açma gerekçesi (D'ye özel, karar bekliyor):** ADR-0009 oranı ≈ 1,4 (12×17, 14×19, 15×21, 16×23) ile kapandı. D'deki tahtalar 1,29–1,33 oranında (bir satır eksik). Gerekçe Utku'nun oynanış gözlemi (16 Kas: tahta küçülsün, oran artsın). ADR-0009 §gerekçe'deki telefon oranı / banner alanı hesabı (ADR-0002) değişmedi; bir satır eksilmesi hücreyi büyütmez, yalnızca alt boşluğu artırır (/ux görüşü). D kazanırsa ADR-0009 revize edilir; aksi hâlde D'nin tahtaları ADR-0009'a geri çekilir (p 0,02–0,03 düşer).
+
 ### Karşılaştırma
 
-| | A Ritim | B Kademeli | C Dalgalı |
-|---|---|---|---|
-| İlk S | L10 | L20 | L10 |
-| S sayısı / 100 | 10 | 14 | 15 |
-| H (+H+) / 100 | 20 | 9 + 12 | 19 |
-| `bigram` level | 10 | 26 | 15 |
-| `disjoint` level | 1 | 1 | 31 |
-| Set D₂ toplamı | 94 sabit | 84 → 101 | 94 / 97 dönüşümlü |
-| Duvar konumu | hep 10. | 10. (L51+ 8. ve 10.) | 10. / 4. ve 10. |
-| Tahmini içerik süresi | ≈ 3 sa | ≈ 3 sa 5 dk | ≈ 2 sa 40 dk |
-| Test ettiği soru | Amaze ritmi tek başına yeter mi? | Giriş yumuşatılınca L10 drop düşer mi; L51+ sertlik D7'yi taşır mı? | Beklenmedik duvar ve güçlü nefes (R−) "sonraki seviye" oranını artırır mı? |
+| | A Ritim | B Kademeli | C Dalgalı | D Hafif |
+|---|---|---|---|---|
+| Set deseni | `RNHRNHRNNS` | 3 bölge | sakin / sert | `KOKOZKOKXK` |
+| İlk S / ÇZ | L10 | L20 | L10 | L9 |
+| S (ÇZ) / 100 | 10 | 14 | 15 | 10 |
+| H (+H+) / Z / 100 | 20 | 9 + 12 | 19 | 10 |
+| Kolay+orta / 100 | 31 | 27 | 31 | **80** |
+| `bigram` level | 10 | 26 | 15 | 10 |
+| `disjoint` level | 1 | 1 | 31 | 1 |
+| D₂ ortalaması | 9,4 | 9,6 | 9,5 | **7,0** |
+| Set D₂ toplamı | 94 sabit | 84 → 101 | 94 / 97 dönüşümlü | 70 sabit |
+| Tahtalar | ADR-0009 | ADR-0009 | ADR-0009 | bir satır kısa (12×16 … 16×21) |
+| Tahmini içerik süresi | ≈ 3 sa | ≈ 3 sa 5 dk | ≈ 2 sa 40 dk | ≈ 2 sa 10 dk |
+| Test ettiği soru | Amaze ritmi tek başına yeter mi? | Giriş yumuşatılınca L10 drop düşer mi; L51+ sertlik D7'yi taşır mı? | Beklenmedik duvar ve güçlü nefes (R−) "sonraki seviye" oranını artırır mı? | %80 kolay/orta + küçük tahta ile fail ve süre hedefe iner mi; 10 ÇZ yeterli "diş" mi? |
 
-Önerilen: **A kontrol**; B ve C birer hipotez. Üçü de oynanır; seçim `#ölçüm`'deki eşiklerle.
+Önerilen: **D** Utku'nun 16 Kas gözlemi üzerine birincil aday; A kontrol; B/C hipotez. Seçim `#ölçüm`'deki eşiklerle.
 
 ## Gerekçe
 
+- Utku (16 Kas): "bunlar çok zor olmuş; 10'lu K-O-K-O-Z-K-O-K-ÇZ-K; zor/çok zor buradaki gibi; kolay ve orta levellar yapalım, board size küçülsün, oranlar biraz artabilir" → D. Zorluk kaldıracı olarak K/grid/PER değil tier dağılımı ve p kullanıldı (ADR-0008 ile uyumlu); tahta kısaltması ADR-0009'a karşı, D'ye özel not düşüldü.
 - Utku (13 Kas): "3 tane funnel hazırla hepsi 100 level olsun, patternleri 10'luk setler halinde düşün, levellar ve funnel'larda çeşitlilik istiyorum." Tek dizi + tek havuz sırası, hangi kaldıracın (yumuşak giriş, kademeli sertleşme, duvar konumu, nefes gücü) işe yaradığını ayırt ettirmez; üç varyant bunları birer birer oynatır.
 - Amaze GO! ritmi (A) kanıtlı ama tier'lar sabit dağılımlı: oyuncu "ilerliyorum" sinyalini yalnızca level numarasından alır. WSE ilerledikçe parametre açar (`hwp` L35+); B bu iki modelin karmasıdır — sertleşme dizi ve dolgu modundan gelir, K/grid/p'den değil (ADR-0008 kaldıraç yasağına uyar).
 - v03: `disjoint` −50 % süre, `bigram` +15–24 %. C bunları R/S'ye bağlayarak relief–duvar kontrastını büyütür; B `bigram`'ı H'ye de taşıyarak 50+ sonrası "yarım kelime tuzağı" yoğunluğunu artırır.
@@ -121,9 +153,10 @@ Tek ve çift setler dönüşümlü: **sakin set** `R N N R H R N N H S` (1 S son
 
 `funnel-v01.md#ölçüm` eşikleri funnel başına; ek karşılaştırma metrikleri (prototip `ka-log`, kayıtta `funnel: a|b|c`):
 
-| Metrik | A | B | C | Karar |
-|---|---|---|---|---|
-| L10 fail | ≤ %25 | L10 H: ≤ %15; L20 S: ≤ %25 | ≤ %25 | B'de L10 fail A'dan ≥ 10 puan düşükse yumuşak giriş ADR'ye girer |
+| Metrik | A | B | C | D | Karar |
+|---|---|---|---|---|---|
+| L10 fail | ≤ %25 | L10 H: ≤ %15; L20 S: ≤ %25 | ≤ %25 | L9 ÇZ ≤ %25; K levelları ≤ %2 | B'de L10 fail A'dan ≥ 10 puan düşükse yumuşak giriş ADR'ye girer; D'de K fail > %2 ise K p üst ucu 0,60 → 0,62 |
+| Süre medyanı (D) | — | — | — | K ≤ 1:00 · O 1:15–1:30 · Z ≤ 2:00 · ÇZ ≤ 2:30 | ÇZ > 2:30 → `bigram` kalkar; K < 0:40 → K'da "boş" his, O payı artar (`KOKOZKOOXK`) |
 | S sonrası "sonraki seviye" | taban | — | C'de L14/L34 (4. sıra S) sonrası ≥ A'nın L10 sonrası | Beklenmedik duvar drop artırıyorsa C elenir |
 | R sonrası süre / N süresi | ≈ 0,8 | ≈ 0,8 | R−: ≤ 0,5 | C'de ≤ 0,5 değilse `disjoint` R'de saturasyonda (v03 %70) |
 | H+ fail (B L51+) | — | H ile S arasında (0,85 > kazanma > 0,78) | — | S'ye eşitse H+ kalkar |

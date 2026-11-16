@@ -241,7 +241,10 @@ if(mode==="validate"){
     if(F.poolSeed!==undefined){const r=mulberry32(F.poolSeed*7919+k.charCodeAt(0));for(let i=a.length-1;i>0;i--){const j=Math.floor(r()*(i+1));[a[i],a[j]]=[a[j],a[i]]}}
     pool[k]=a}
   // --- havuz doğrulaması: palindrom, alt dize (ters dahil), kelime sayısı, uzunluk ve Σ bandı, özel harf sınırı, havuz genelinde kelime tekilliği ---
-  const BANDS={F:{k:4,len:[5,6],sum:[21,23],special:1},R:{k:5,len:[4,7],sum:[26,28],special:0.15},N:{k:6,len:[4,6],sum:[29,30],special:0.134},H:{k:6,len:[4,5],sum:[24,26],special:0.10},S:{k:7,len:[4,5],sum:[28,31],special:0.10}};
+  // Doğrulama yalnızca funnel'ın tier'larının çektiği havuz anahtarlarında (K listeleri N'den türetildiği için K+N aynı funnel'da olamaz; funnel D K kullanır, N kullanmaz).
+  const usedKeys=new Set(Object.entries(F.tiers).map(([code,t])=>t.pool||code));
+  for(const k of Object.keys(pool))if(!usedKeys.has(k))delete pool[k];
+  const BANDS={F:{k:4,len:[5,6],sum:[21,23],special:1},K:{k:4,len:[4,6],sum:[20,23],special:0.15},R:{k:5,len:[4,7],sum:[26,28],special:0.15},N:{k:6,len:[4,6],sum:[29,30],special:0.134},H:{k:6,len:[4,5],sum:[24,26],special:0.10},S:{k:7,len:[4,5],sum:[28,31],special:0.10}};
   const errs=[], seen=new Map();
   for(const k of Object.keys(pool))for(const it of pool[k]){const B=BANDS[k],ws=it.words,tag=`${k}/${it.theme}`;
     if(B){if(ws.length!==B.k)errs.push(`${tag}: ${ws.length} kelime (beklenen ${B.k})`);

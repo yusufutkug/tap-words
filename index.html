@@ -129,7 +129,7 @@ button:focus-visible{outline:2px solid var(--brown-x);outline-offset:2px}
 <script src="levels.js"></script>
 <script>
 // Funnel seçimi: ?funnel=a|b|c (docs/levels/funnels-v01.md). Son seçim localStorage "ka-funnel"; varsayılan a. Dosya: funnel-<id>-levels.js
-const FUNNELS={a:"Ritim",b:"Kademeli",c:"Dalgalı"};
+const FUNNELS={a:"Ritim",b:"Kademeli",c:"Dalgalı",d:"Hafif"};
 let FUNNEL_ID=new URLSearchParams(location.search).get("funnel"); try{if(!FUNNELS[FUNNEL_ID])FUNNEL_ID=localStorage.getItem("ka-funnel");if(FUNNELS[FUNNEL_ID])localStorage.setItem("ka-funnel",FUNNEL_ID)}catch(e){}
 if(!FUNNELS[FUNNEL_ID])FUNNEL_ID="a";
 document.write(`<script src="funnel-${FUNNEL_ID}-levels.js"><\/script>`);

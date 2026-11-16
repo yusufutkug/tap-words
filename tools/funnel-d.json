@@ -1,0 +1,23 @@
+{
+  "$comment": "Funnel D — Hafif (Utku, 16 Kas: A/B/C çok zor). 10'luk set K O K O Z K O K ÇZ K (5 kolay · 3 orta · 1 zor · 1 çok zor). Z = H, X = ÇZ = S parametreleri; K/O yeni kolay/orta tier'lar (F/R havuz bantları). Tahtalar küçültüldü: 12×16 / 14×18 / 15×20 / 16×21 (ADR-0009'dan sapma, D'ye özel; docs/levels/funnels-v01.md#d--hafif).",
+  "id": "d",
+  "name": "Hafif",
+  "seed": 20261116,
+  "poolSeed": 4,
+  "count": 100,
+  "pool": "funnel-pool.json",
+  "sequence": [
+    "KOKOZKOKXK", "KOKOZKOKXK", "KOKOZKOKXK", "KOKOZKOKXK", "KOKOZKOKXK",
+    "KOKOZKOKXK", "KOKOZKOKXK", "KOKOZKOKXK", "KOKOZKOKXK", "KOKOZKOKXK"
+  ],
+  "tiers": {
+    "K": { "cols": 12, "rows": 16, "per": 5, "lives": 3, "fillMode": "freq", "pool": "K", "label": "K" },
+    "O": { "cols": 14, "rows": 18, "per": 5, "lives": 3, "fillMode": "freq", "pool": "R", "label": "O" },
+    "Z": { "cols": 15, "rows": 20, "per": 5, "lives": 3, "fillMode": "freq", "pool": "H", "label": "Z" },
+    "X": { "cols": 16, "rows": 21, "per": 5, "lives": 3, "fillMode": "bigram", "pool": "S", "label": "ÇZ" }
+  },
+  "overrides": {
+    "1": { "diag": 0, "rev": 0, "fillMode": "disjoint" },
+    "2": { "diag": 0 }
+  }
+}
