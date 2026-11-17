@@ -16,6 +16,7 @@ Not: Decompile edilmiş kodu veya asset'leri kopyalamak yok; config/level yapıs
 |---|---|---|---|
 | Amaze GO! (Oakever Games) | Genel tasarım ve basitlik yaklaşımı; tap-to-clear + can mekaniği akrabası (ADR-0001) | `amaze-go.md` | Analiz edildi + **APK analizi** (2026-10-26; level JSON, config, A/B parametreleri) — bkz. `amaze-go.md#apk-analizi` |
 | Word Search Explorer (PlaySimple) | Level tasarımı ve zorluk parametreleri; fail state'siz ritim; banner/interstitial zamanlaması (ADR-0001, ADR-0002) | `word-search-explorer.md` | Analiz edildi + **APK analizi** (2026-10-26; 3510 level verisi, config) — bkz. `word-search-explorer.md#apk-analizi` |
+| MazeOut (arrow escape) | **Funnel iskeleti:** ayrı intro bloğu, sabit 10'luk desen `1112111131`, tier içi çeşitlilik, tepe–nefes kontrastı, yeni öğenin zordan sonraki küçük levelda tanıtımı; A/B'de düzensiz dizi (Funnel E / F kaynağı) | `maze-out.md` | Level/config dökümü analizi (2026-11-17; 1047 level satırı, 136 config); oynanış gözlemi yok |
 
 ## Aday liste (sonraki turlar)
 

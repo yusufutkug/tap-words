@@ -28,6 +28,7 @@ Level dizisi üç veriden üretilir, level numarasına içerik elle yazılmaz: *
 - `levels/funnel-a.json`, `-b`, `-c` Unity paketleri; `level-format.md`'ye `tier` (F/R/N/H/S + varyant kodu), `diagonalWeight`, `lives` 3.
 - `/level-design` (yapıldı, 13 Kas): ortak havuz `tools/funnel-pool.json` 116 liste; Çiftlik, Masallar, Tatil ≤ %10'a kürate edildi.
 - **Dizi seçimi açık:** bu ADR'deki dizi (A Ritim) kontrol koludur; B Kademeli ve C Dalgalı varyantları `docs/levels/funnels-v01.md`'de. **16 Kas:** A/B/C oynanışı "çok zor" → **D Hafif** eklendi (`K O K O Z K O K ÇZ K`, K/O yeni kolay/orta tier'lar, tahtalar bir satır kısa — ADR-0009'a karşı, D'ye özel); D birincil aday. Playtest sonrası kazanan dizi (veya karması) buraya yazılır; D kazanırsa tier seti K/O/Z/ÇZ olarak ve ADR-0009 revizyonuyla birlikte güncellenir.
+- **17 Kas:** D oynanışı sonrası **E Maze** ve **F Düzensiz** eklendi (`docs/levels/funnels-v02.md`, `?funnel=e|f`): intro L1–10, tier = D₂ bandı + tarifler, yön profilleri, kelime rolleri — bu ADR'nin "tier parametre seti" ve "liste havuzu" maddelerini ADR-0011 (taslak) yeniden açar; dizi + tier modeli aynı kalır. E birincil aday.
 - `/liveops`: ComeBack kuralı, RC alanları, Daily Challenge D₂ hedefi (`funnel-v01.md#özel-havuzlar`).
 - `/ux`: L3 çapraz coach'u, L1 `disjoint` görünümü, tier sinyali (#18b).
 - Ölçüm: `funnel-v01.md#ölçüm` — c 0,08–0,13; ilk-deneme kazanma F/R ≥ 0,98 · N ≥ 0,93 · H ≥ 0,85 · S ≥ 0,78; L10 fail ≤ %25. Playtest sonucu bu ADR'yi Kabul'e çevirir veya tier setini revize eder.

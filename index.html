@@ -129,7 +129,7 @@ button:focus-visible{outline:2px solid var(--brown-x);outline-offset:2px}
 <script src="levels.js"></script>
 <script>
 // Funnel seçimi: ?funnel=a|b|c (docs/levels/funnels-v01.md). Son seçim localStorage "ka-funnel"; varsayılan a. Dosya: funnel-<id>-levels.js
-const FUNNELS={a:"Ritim",b:"Kademeli",c:"Dalgalı",d:"Hafif"};
+const FUNNELS={a:"Ritim",b:"Kademeli",c:"Dalgalı",d:"Hafif",e:"Maze",f:"Düzensiz"};
 let FUNNEL_ID=new URLSearchParams(location.search).get("funnel"); try{if(!FUNNELS[FUNNEL_ID])FUNNEL_ID=localStorage.getItem("ka-funnel");if(FUNNELS[FUNNEL_ID])localStorage.setItem("ka-funnel",FUNNEL_ID)}catch(e){}
 if(!FUNNELS[FUNNEL_ID])FUNNEL_ID="a";
 document.write(`<script src="funnel-${FUNNEL_ID}-levels.js"><\/script>`);
@@ -139,7 +139,7 @@ document.write(`<script src="funnel-${FUNNEL_ID}-levels.js"><\/script>`);
 // Board parameters are per level: LEVELS[i].cols/rows/per/lives override these defaults (set in newGame).
 let COLS=20, ROWS=25, PER=5, LIVES=5; const DEF={cols:20,rows:25,per:5,lives:5};
 // Ana akış: funnel-<id>-levels.js (docs/levels/funnel-v01.md modeli, docs/levels/funnels-v01.md A/B/C; tier dizisi + tier parametre seti + tema havuzu, can 3). Yoksa eski 50 level ana akış olur.
-const LEVELS=(window.FUNNEL_DATA?.levels??[]).map(f=>({name:f.name,words:f.words,cols:f.cols,rows:f.rows,per:f.per,lives:f.lives,fillMode:f.fillMode,rev:f.rev,diag:f.diag,tier:f.tier,funnel:f}));
+const LEVELS=(window.FUNNEL_DATA?.levels??[]).map(f=>({name:f.name,words:f.words,cols:f.cols,rows:f.rows,per:f.per,lives:f.lives,fillMode:f.fillMode,rev:f.rev,diag:f.diag,tier:f.tier,recipe:f.recipe,dirProfile:f.dirProfile,roles:f.roles,funnel:f}));
 // Arşiv: 50 temalı level, 10 kelime (4–8 harf), 20×25, PER 5, can 5 (levels.js pişmiş tahtalar). Funnel varsa menüde "Arşiv" olarak listelenir.
 const ARCHIVE=[
   {name:"Karışık",    words:["KALEM","ELMA","DENİZ","KİTAP","GÜNEŞ","ÇİÇEK","BALIK","YILDIZ","ORMAN","KÖPEK"]},
@@ -335,6 +335,7 @@ let G, found, lives, over, hints=0, startedAt=0, wrongTaps=0, wrongAt=[]; const 
 let collect=true; try{const v=localStorage.getItem("ka-collect");if(v!==null)collect=v==="1"}catch(e){} // default on: "bulunan harfler tahtadan gider" (docs/uncertainties.md#netleşenler)
 const $=id=>document.getElementById(id);
 const vp=$("viewport"), grid=$("grid");
+const TINY_COLS=10, CELL_MAX=40; // sütun ≤ 10 olan tahtalarda fit ölçeğinde hücre en çok 40 px
 let scale=1, tx=0, ty=0, base=20, PAD=16, minScale=1; // base = unscaled cell px, PAD = white margin around the letters
 
 function newGame(state,lv){
@@ -353,7 +354,7 @@ function newGame(state,lv){
 function renderLevels(){
   $("lvlNum").textContent=level+1;
   $("theme").textContent=LEVELS[level].name.toLocaleUpperCase("tr");
-  const label=(l,i)=>l.test?`${l.name} · ${l.cols}×${l.rows} · ×${l.per} · ${l.test.series}`:l.funnel?`${i+1} · ${l.name} · ${window.FUNNEL_DATA?.tiers?.[l.tier]?.label??l.tier}${l.fillMode&&l.fillMode!=="freq"?" "+l.fillMode:""} · D₂ ${l.funnel.meta.D2}`:`${l.arch!==undefined&&FUNNEL_N?"Arşiv "+(l.arch+1):i+1} · ${l.name}`;
+  const label=(l,i)=>l.test?`${l.name} · ${l.cols}×${l.rows} · ×${l.per} · ${l.test.series}`:l.funnel?`${i+1} · ${l.name} · ${window.FUNNEL_DATA?.tiers?.[l.tier]?.label??l.tier}${l.fillMode&&l.fillMode!=="freq"?" "+l.fillMode:""}${l.recipe?` · ${l.recipe} · ${window.FUNNEL_DATA?.dirProfiles?.[l.dirProfile]?.label??l.dirProfile}${l.roles&&l.roles!=="none"?" · "+(window.FUNNEL_DATA?.roles?.[l.roles]?.label??l.roles):""}`:""} · D₂ ${l.funnel.meta.D2}`:`${l.arch!==undefined&&FUNNEL_N?"Arşiv "+(l.arch+1):i+1} · ${l.name}`;
   const sep=i=>(FUNNEL_N&&i===FUNNEL_N)?`<h4>Arşiv (20×25, can 5)</h4>`:(i===BASE_N&&BASE_N<LEVELS.length)?`<h4>Parametre testleri</h4>`:"";
   const sw=FUNNEL_N?`<h4>Funnel: ${Object.entries(FUNNELS).map(([k,v])=>k===FUNNEL_ID?`<b>${k.toUpperCase()} ${v}</b>`:`<a href="?funnel=${k}">${k.toUpperCase()} ${v}</a>`).join(" · ")} · can 3</h4>`:"";
   $("levels").innerHTML=sw+LEVELS.map((l,i)=>sep(i)+`<button class="${i===level?"on":""}" data-lv="${i}">${label(l,i)}</button>`).join("");
@@ -397,7 +398,9 @@ function clamp(){ // free scroll (Amaze GO!): any board edge may travel up to th
 }
 function fit(){
   const W=vp.clientWidth,H=vp.clientHeight;
-  scale=Math.min(W/(COLS*base+2*PAD),H/(ROWS*base+2*PAD)); minScale=scale;
+  scale=Math.min(W/(COLS*base+2*PAD),H/(ROWS*base+2*PAD));
+  if(COLS<=TINY_COLS)scale=Math.min(scale,CELL_MAX/base); // minik tahta (intro): hücre ekranı doldurmak için büyümez (docs/open-questions.md, /ux)
+  minScale=scale;
   tx=(W-BW())/2; ty=(H-BH())/2; // start centred
   clamp();apply();
 }
@@ -507,7 +510,7 @@ function finish(win){
   over=true; renderHint();
   const n=found.filter(Boolean).length;
   const ms=Date.now()-startedAt, sec=Math.round(ms/1000), dur=`${Math.floor(sec/60)}:${String(sec%60).padStart(2,"0")}`;
-  logLevel({funnel:LEVELS[level].funnel?FUNNEL_ID:undefined,level:level+1,name:LEVELS[level].name,tier:LEVELS[level].tier??(LEVELS[level].test?"test":"archive"),D2:LEVELS[level].funnel?.meta.D2??LEVELS[level].test?.meta.D2,lives:LIVES,cols:COLS,rows:ROWS,per:PER,fillMode:FILLMODE,rev:REV??0.2,diag:DIAG,words:WORDS.length,placements:found.length,found:n,ms,wrongTaps,wrongAt:[...wrongAt],hintsUsed:MAXH-hints,result:win?"win":"fail",at:new Date().toISOString()});
+  logLevel({funnel:LEVELS[level].funnel?FUNNEL_ID:undefined,level:level+1,name:LEVELS[level].name,tier:LEVELS[level].tier??(LEVELS[level].test?"test":"archive"),D2:LEVELS[level].funnel?.meta.D2??LEVELS[level].test?.meta.D2,lives:LIVES,cols:COLS,rows:ROWS,per:PER,fillMode:FILLMODE,rev:REV??0.2,diag:DIAG,recipe:LEVELS[level].recipe,dirProfile:LEVELS[level].dirProfile,roles:LEVELS[level].roles,sep:LEVELS[level].funnel?.sep,fener:LEVELS[level].funnel?.fener,revShare:LEVELS[level].funnel?.meta.rev,diagShare:LEVELS[level].funnel?.meta.diag,fillOverlap:LEVELS[level].funnel?.meta.fillOverlap,stacks:LEVELS[level].funnel?.meta.stacks,words:WORDS.length,placements:found.length,found:n,ms,wrongTaps,wrongAt:[...wrongAt],hintsUsed:MAXH-hints,result:win?"win":"fail",at:new Date().toISOString()});
   const d=document.createElement("div");d.className="overlay";
   d.innerHTML=`<div class="card"><h2>${win?"Hepsini buldun!":"Canların bitti"}</h2><p>${n} / ${found.length} kelime bulundu${win?`, ${lives} can kaldı`:""}.</p><p>Süre: <b>${dur}</b> · Yanlış: <b>${wrongTaps}</b> · İpucu: <b>${MAXH-hints}</b></p>${win&&level<LEVELS.length-1?`<button id="next">Sonraki seviye</button>`:""}<button id="again">${win&&level===LEVELS.length-1?"Baştan başla":"Tekrar oyna"}</button></div>`;
   vp.appendChild(d);

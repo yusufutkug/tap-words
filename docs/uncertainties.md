@@ -22,7 +22,7 @@ Tarih: 2026-10-26 · Durum: Utku ile üzerinden geçiliyor. Karar verilen satır
 - **Çıkış event seti:** Daily Challenge, Daily Goals, Daily Rush (3 aşamalı merdiven, gün sonu sıfırlanır), coin mini-oyunu, haftalık kavanoz koleksiyonu (kelime bulununca +1, obje kalan kelimeye geçer, sınır yok) → ADR-0007.
 - **Backend yok;** gerekirse bot/yalancı oyuncu kurgusu kabul. Bot turnuvası soft launch sonrası.
 - **SDK:** Atiba. **Congrats/motivation katmanı** isteniyor, detayı sonra.
-- **Funnel:** Amaze GO! modeli → ADR-0010 (taslak; playtest sonrası Kabul). **Dizi seçimi açık:** A Ritim (kontrol) / B Kademeli / C Dalgalı / **D Hafif (16 Kas, birincil aday; %80 kolay-orta, tahtalar bir satır kısa → ADR-0009 yeniden açılabilir)** — 100'er level, `docs/levels/funnels-v01.md`; prototipte `?funnel=a|b|c|d`. **Main menu art direction:** karar bekliyor (K1, `docs/planning/execution-plan-v01.md`).
+- **Funnel:** Amaze GO! modeli → ADR-0010 (taslak; playtest sonrası Kabul). **Dizi seçimi açık:** A Ritim (kontrol) / B Kademeli / C Dalgalı / **D Hafif (16 Kas, birincil aday; %80 kolay-orta, tahtalar bir satır kısa → ADR-0009 yeniden açılabilir)** — 100'er level, `docs/levels/funnels-v01.md`; prototipte `?funnel=a|b|c|d`. **17 Kas:** D oynanışındaki şikâyetler (yönler hep aynı, ÇZ çok zor, kelimeler tek tip, tam hizalı kopyalar) → **E Maze** (intro + `KOKOZKOKÇZK`, birincil aday) ve **F Düzensiz** (MazeOut A/B dizisi); tier = D₂ bandı + tarifler (K 3–7), yön profilleri, kelime rolleri (ayrışan / fener), ilk 100'de ÇZ ≤ 11 → ADR-0011 (taslak), `docs/levels/funnels-v02.md`, `?funnel=e|f`. **Main menu art direction:** karar bekliyor (K1, `docs/planning/execution-plan-v01.md`).
 
 ## Açık belirsizlikler
 
@@ -40,11 +40,12 @@ Tarih: 2026-10-26 · Durum: Utku ile üzerinden geçiliyor. Karar verilen satır
 ### Level
 
 - ~~**Funnel modeli**: sabit merdiven (WSE) mi, tier ritmi + havuz (Amaze GO!) mi?~~ → **Amaze GO! modeli** (Utku, 13 Kas): tier dizisi + tier parametre seti + tema havuzu; ADR-0010 taslak, prototip playtest (L1–30, 3 can) sonrası Kabul. `docs/levels/funnel-v01.md`.
-- **Board size seti**: WSE 36/42/56/72/90; 
-- **Harf gürültüsü / dolgu oranı**: WSE %22–27 (cezasız), prototip %48. Can riskini doğrudan belirler. → p artık tier kaldıracı (ADR-0008, 0,38–0,54); **dolgu alfabesi** de kaldıraç (v03: `disjoint` −50 %, `bigram` +15–24 %) → F `disjoint`, S `bigram` (ADR-0010 taslak).
+- **Board size seti**: WSE 36/42/56/72/90; E/F'de intro 6×8 → 10×13 ve F'de 6 ana boyut (11×15 … 16×21) deneniyor (ADR-0011 taslak; ADR-0009'a karşı — hücre boyutu sıçraması /ux #30). 
+- **Harf gürültüsü / dolgu oranı**: WSE %22–27 (cezasız), prototip %48. Can riskini doğrudan belirler. → p artık tier kaldıracı (ADR-0008, 0,38–0,54); **dolgu alfabesi** de kaldıraç (v03: `disjoint` −50 %, `bigram` +15–24 %) → F `disjoint`, S `bigram` (ADR-0010 taslak). **17 Kas:** D₂ dolguyu görmüyor; E/F'de `bigram` yok, dolgu kelime ölçeğinde oynanıyor (ayrışan kelime). Dolgu örtüşmesi, rol ve yön profili için D₂ katsayısı `ka-log`'dan ölçülecek (#31; `funnels-v02.md#ölçüm`).
 - **Kelime sayısı ve kopya dağılımı**: chip tek satır sınırıyla kaç kelime; kopya sayısı nasıl dağılır.
 - **Tema/association**: tema adı gösterilir mi; gizli tema ileri level kaldıracı mı?
-- ~~**Yön oranları**: ters/çapraz ne zaman açılır.~~ → v03: ters yazım kaldıraç değil (±9 %), 0,20 sabit, L1'de 0; çapraz L1–2 kapalı, L3'ten nominal (`funnel-v01.md#kaldıraçların-giriş-sırası`).
+- ~~**Yön oranları**: ters/çapraz ne zaman açılır.~~ → v03: ters yazım kaldıraç değil (±9 %), 0,20 sabit, L1'de 0; çapraz L1–2 kapalı, L3'ten nominal (`funnel-v01.md#kaldıraçların-giriş-sırası`). **17 Kas (E/F, ADR-0011 taslak):** yön level başına profil çekilişi (karışık / düz / çapraz ağırlıklı / ters ağırlıklı) — zorluk için değil çeşitlilik için; çapraz L4'te, ters ağırlıklı L7'de açılır.
+- **Aynı D₂'li tarifler eşdeğer mi** (3 uzun kelime ↔ 5 kısa sıkı ↔ 4 kelime; ADR-0011 taslak): ölçülmedi; eşik aynı tier'da süre medyanı farkı ≤ %25, tutmazsa tarif banttan çıkar veya D₂'ye tarif katsayısı (#31).
 - **Tahtada başka kelimelerle zorluk**: kasıtlı yakın kelime (KAR/KART) tuzak mı, bonus mu? Pillar 3 ile gerilimli.
 
 ### Ekonomi

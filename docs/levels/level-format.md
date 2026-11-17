@@ -60,7 +60,7 @@
 | `id` | string | Paket içinde tekil. Ana akışta `"L0001"` biçimi önerilir; testte `T00`. |
 | `index` | int | Oyuncuya gösterilen level numarası (1 tabanlı). Prototipte 50 ana level + test → 51…62. |
 | `lang` | string | Kelimelerin dili. |
-| `tier` | string | Zorluk kademesi (`F R N H S`, `funnel-v01.md` tier seti; varyant kodu olabilir, ör. `B` = H + `bigram`, `funnels-v01.md`) veya `"test"`. Loader kullanmaz; analitik ve event seçimi için. Funnel paketinde paket düzeyinde `funnel` (a/b/c), `sequence` (10'luk set dizileri) ve `tiers` (kod → parametre, `label`) bulunur; tier'ın parametreleri oradan okunur. |
+| `tier` | string | Zorluk kademesi (`F R N H S`, `funnel-v01.md` tier seti; varyant kodu olabilir, ör. `B` = H + `bigram`, `funnels-v01.md`) veya `"test"`. Loader kullanmaz; analitik ve event seçimi için. Funnel paketinde paket düzeyinde `funnel` (a/b/c), `sequence` (10'luk set dizileri) ve `tiers` (kod → parametre, `label`) bulunur; tier'ın parametreleri oradan okunur. **Composed funnel (E / F, `funnels-v02.md`, ADR-0011 taslak):** tier kodları `I` Giriş · `K` · `O` · `Z` · `X` (etiket "ÇZ"); `tiers[kod]` yalnız `label` ve D₂ `band` taşır (parametre değil), paket düzeyinde ayrıca `recipes`, `dirProfiles`, `roles` sözlükleri (kod → `label` + üretim parametreleri) bulunur. |
 | `series` | string? | Yalnızca test paketlerinde: hangi parametre serisi. |
 | `cols`, `rows` | int | Tahta boyutu. `grid.length === rows`, her satır `cols` karakter. |
 | `per` | int | Her kelimenin kopya sayısı. `placements` içinde her `wordIndex` tam `per` kez geçer. (Netleşenler'deki "kelimeye göre değişen kopya" gelirse `per` yerine `copies[]` dizisi eklenir; `per` o zaman kaldırılır.) |
@@ -69,6 +69,13 @@
 | `fillMode` | string | Dolgu alfabesi modu (`param-tests-v03.md`): `freq` TR harf frekansı (varsayılan) · `disjoint` yalnızca hedef kelimelerde geçmeyen harfler · `target` yalnızca hedef kelimelerin harfleri (hedefteki frekansla) · `bigram` hedef kelimelerde geçen ikililerle zincirlenmiş hedef harfleri. Loader kullanmaz; üretim bilgisi. |
 | `reversedWeight` | float? | Generator'a verilen ters yazım olasılığı (0–1). Yoksa 0,20 (ileri 4 : ters 1). Gerçekleşen pay `meta.reversedShare`. |
 | `diagonalWeight` | float? | Generator'a verilen çapraz eksen olasılığı (0–1). Yoksa 0,5 (dört eksen eşit). `0` → yalnızca yatay/dikey (FTUE L1–2, `funnel-v01.md`). Gerçekleşen pay `meta.diagonalShare`. |
+| `recipe` | string? | Composed funnel: levelın tarifi (`K4`, `O5`, `Z6`, `X7`…; intro `I1`–`I4`); açıklaması paket düzeyinde `recipes[kod]` (`tier`, `label`, `groups` = kelime sayısı × uzunluk aralığı, `grids`). Loader kullanmaz; analitik. |
+| `dirProfile` | string? | Composed funnel: yön profili (`karisik`, `duz`, `capraz`, `ters`, `yatay`, `dikey`); paket düzeyinde `dirProfiles[kod]`. Loader kullanmaz; analitik. |
+| `axisWeights` | float[4]? | Generator'a verilen eksen ağırlıkları `[yatay, dikey, ↘, ↙]`. Varsa `diagonalWeight` yerine geçer (ikisi birlikte yazılmaz). Gerçekleşen pay `meta.diagonalShare`. |
+| `roles` | string? | Composed funnel: kelime rolü kombinasyonu (`none`, `A`, `F`, `AA`, `AF`, `FF`, `FFA`; A = ayrışan, F = fener); paket düzeyinde `roles[kod]`. |
+| `separatedWords` | string[]? | **Ayrışan** kelimeler: dolgu hücrelerinde bu kelimelerin harfleri bulunmaz (`mechanic.md` terimler). Tahtaya işlenmiş bir üretim kuralıdır; loader'ın yapacağı bir şey yok. Oyuncuya gösterilmez. |
+| `beaconWords` | string[]? | **Fener** kelimeler (2+ harfi Ç Ğ Ö Ş Ü). Bilgi amaçlı; oyuncuya gösterilmez. |
+| `allowStack` | int? | Üretimde izin verilen tam hizalı aynı kelime çifti sayısı (0 veya 1). Gerçekleşen `meta.alignedPairs`. Yoksa denetim yapılmamıştır (A–D, test paketleri). |
 | `words` | string[] | Chip sırası. Büyük harf, dilin kendi büyük harfleri (`İ`, `I`). Palindrom yok; hiçbir kelime (veya tersi) başka bir kelimenin alt dizisi değil (generator kısıtı, `mechanic.md`). |
 | `grid` | string[] | `rows` adet satır; her satır `cols` adet **Unicode karakter** (UTF-16 code unit değil; Unity'de `StringInfo`/`EnumerateRunes` ile sayılmalı). |
 | `placements[]` | object[] | Her kopya bir kayıt. `word` ve `wordIndex` ikisi de var (okunabilirlik + hız). `row/col` ilk harf; `dir` 8 yön (`E S SE SW W N NW NE`), `dr/dc` aynı bilginin sayısal hali; `cells` her harfin koordinatı, kelime sırasıyla. **Yerleşimler kesişmez**: bir hücre en fazla bir yerleşime aittir. |
@@ -84,6 +91,8 @@
 | `meta.fillOverlap` | float? | Hedef kelimelerde geçen bir harfi taşıyan dolgu hücresi / tüm dolgu (#23). `disjoint` → 0, `target`/`bigram` → 1. |
 | `meta.fillSpecial` | float? | Özel harf (İŞĞÇÖÜ) taşıyan dolgu hücresi payı (#24). |
 | `meta.wordSpecial` | float? | Kelime listesindeki özel harf payı (#17). |
+| `meta.alignedPairs` | int? | Tam hizalı aynı kelime çifti sayısı (aynı eksen, ters yazım dahil; eksene paralel olmayan bir birim adım kaymış birebir kopya). Composed funnel'da ≤ `allowStack`. |
+| `meta.D2Target` | float? | Composer'ın level için çektiği D₂ hedefi (bant içi; tepe kayması ve tepe sonrası kuralı dahil). `meta.D2` gerçekleşen değerdir; Σ harf tam sayı olduğu ve tarif / profil kısıtları yüzünden hedeften sapabilir (E'de en çok 0,66, F'de 0,89), ama tier bandının içindedir. Intro levellarında yok. |
 | `meta.theme` | string | Tema etiketi (ekranda gösterilen). |
 | `meta.seed` | int | Üretim seed'i; yalnızca yeniden üretilebilirlik için. |
 
@@ -103,6 +112,8 @@ Hata → level atlanmaz, paket reddedilir (üretim hatası, oyuncu hatası deği
 Prototip (`index.html`) hâlâ kompakt formatı okur (`levels.js`, `test-levels.js`: `letters` düz dizi + `p = [wordIdx, startIdx, dr, dc]`). Bu JSON ondan türetilir: `node tools/bake.js pack test-levels.js <paket-adı> > levels/<dosya>.json` (2026-11-11'den itibaren; `tools/bake.js` ADR-0005'in offline generator'ıdır: `validate`, `bake`, `pack`, `check` modları). İki kaynak aynı seed'den geldiği için tahtalar birebir aynıdır. Paketler: `levels/test-levels-v01.json` (T00–T11), `levels/test-levels-v02.json` (T00–T11 + T09X, T12–T15), `levels/test-levels-v03.json` (öncekiler + T00b, T16–T22; `fillMode`, `reversedWeight`, `meta.fillOverlap/fillSpecial/wordSpecial` ile), **`levels/funnel-a.json`, `funnel-b.json`, `funnel-c.json`, `funnel-d.json`** (ana akış varyantları, 100'er level; D'de tier kodları `K O Z X`, `tiers[].label` ÇZ; `node tools/bake.js funnel tools/funnel-<x>.json > funnel-<x>-levels.js` → `pack funnel-<x>-levels.js funnel-<x>`; can 3, `tier`, `diagonalWeight`; paket düzeyinde `funnel`, `funnelName`, `sequence` (10'luk set dizileri), `tiers` (tier → parametre; varyant kodları, ör. B'de `"B"` = H + `bigram`, `label "H+"`). Tasarım `docs/levels/funnels-v01.md`.
 
 ## Açık noktalar
+
+- Composed funnel alanlarının hepsi (`recipe`, `dirProfile`, `axisWeights`, `roles`, `separatedWords`, `beaconWords`, `allowStack`, `meta.alignedPairs`, `meta.D2Target`) opsiyoneldir ve loader doğrulamasına girmez; ADR-0011 Kabul olana kadar Unity tarafında yok sayılabilir. `per` composed funnel'da da level alanıdır (intro L1–4: 2–3).
 
 - Kopya sayısı kelimeye göre değişince (`uncertainties.md#netleşenler`) `per` → `copies[]`.
 - Event/daily alanları (`meta.event`, `meta.date`) /liveops spec'inden sonra eklenir.

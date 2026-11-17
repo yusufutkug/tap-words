@@ -1,0 +1,76 @@
+{
+  "$comment": "Funnel E 'Maze' (docs/levels/funnels-v02.md, ADR-0011 taslak). MazeOut ana seti örnek: L1–10 intro, L11–100 sabit ritim K O K O Z K O K ÇZ K. Üretim: node tools/bake.js compose tools/funnel-e.json > funnel-e-levels.js",
+  "id": "e",
+  "name": "Maze",
+  "seed": 20261117,
+  "fixedSeed": 20261117,
+  "count": 100,
+  "design": "docs/levels/funnels-v02.md",
+  "bank": "word-bank.json",
+  "per": 5,
+  "lives": 3,
+  "themeGap": 30,
+  "wordGap": 20,
+  "sequence": ["IIIIKOKKZK", "KOKOZKOKXK"],
+  "tiers": {
+    "I": { "label": "Giriş" },
+    "K": { "label": "K", "band": [4.8, 6.0] },
+    "O": { "label": "O", "band": [6.5, 7.5] },
+    "Z": { "label": "Z", "band": [8.5, 9.5], "peak": true, "drift": [15, 8.5, 95, 9.5] },
+    "X": { "label": "ÇZ", "band": [9.8, 10.85], "peak": true, "maxRoles": 1, "drift": [19, 9.8, 99, 10.8] }
+  },
+  "fixed": {
+    "1": { "name": "Meyveler", "words": ["KİRAZ", "ARMUT"], "cols": 6, "rows": 8, "per": 2, "axisW": [1, 0, 0, 0], "rev": 0, "fillMode": "disjoint", "recipe": "I1", "dirProfile": "yatay" },
+    "2": { "name": "Hayvanlar", "words": ["ASLAN", "ZEBRA", "PANDA"], "cols": 7, "rows": 9, "per": 2, "axisW": [1, 1, 0, 0], "rev": 0, "fillMode": "disjoint", "recipe": "I2", "dirProfile": "duz" },
+    "3": { "name": "Okul", "words": ["KALEM", "KİTAP", "SİLGİ"], "cols": 8, "rows": 11, "per": 3, "axisW": [1, 1, 0, 0], "rev": 0, "recipe": "I3", "dirProfile": "duz" },
+    "4": { "name": "Deniz", "words": ["BALIK", "DALGA", "MARTI", "SANDAL"], "cols": 10, "rows": 13, "per": 3, "axisW": [1, 1, 1, 1], "rev": 0, "diagRange": [0.25, 0.5], "recipe": "I4", "dirProfile": "karisik" }
+  },
+  "recipes": {
+    "K4": { "tier": "K", "label": "4 kelime", "groups": [{ "n": 4, "len": [4, 6] }], "grids": [[12, 16]], "weight": 4 },
+    "K5": { "tier": "K", "label": "5 kısa kelime, sıkı", "groups": [{ "n": 5, "len": [4, 5] }], "grids": [[12, 16]], "weight": 2, "from": 8 },
+    "K3": { "tier": "K", "label": "3 uzun kelime", "groups": [{ "n": 3, "len": [6, 8] }], "grids": [[14, 18]], "weight": 2, "from": 30 },
+    "KD": { "tier": "K", "label": "1 dev + 3 kısa (karakter)", "groups": [{ "n": 1, "len": [7, 8] }, { "n": 3, "len": [4, 5] }], "grids": [[12, 16]], "special": true },
+    "O5": { "tier": "O", "label": "5 kelime", "groups": [{ "n": 5, "len": [4, 7] }], "grids": [[14, 18]], "weight": 4 },
+    "O4": { "tier": "O", "label": "4 uzun kelime", "groups": [{ "n": 2, "len": [6, 7] }, { "n": 2, "len": [5, 6] }], "grids": [[14, 18]], "weight": 2, "from": 11 },
+    "O6": { "tier": "O", "label": "6 kelime, sıkı", "groups": [{ "n": 6, "len": [4, 6] }], "grids": [[14, 18]], "weight": 2, "from": 21 },
+    "Z6": { "tier": "Z", "label": "6 kelime", "groups": [{ "n": 6, "len": [4, 6] }], "grids": [[15, 20]], "weight": 3 },
+    "Z5": { "tier": "Z", "label": "5 kısa kelime, seyrek", "groups": [{ "n": 5, "len": [4, 5] }], "grids": [[15, 20]], "weight": 2, "from": 21 },
+    "Z7": { "tier": "Z", "label": "7 kelime, sıkı", "groups": [{ "n": 7, "len": [4, 6] }], "grids": [[15, 20]], "weight": 2, "from": 40 },
+    "X6": { "tier": "X", "label": "6 kısa kelime", "groups": [{ "n": 6, "len": [4, 5] }], "grids": [[15, 20]], "weight": 3 },
+    "X7": { "tier": "X", "label": "7 kısa kelime", "groups": [{ "n": 7, "len": [4, 5] }], "grids": [[15, 20]], "weight": 2, "from": 40 }
+  },
+  "dirProfiles": {
+    "karisik": { "label": "karışık", "axisW": [1, 1, 1, 1], "rev": 0.2, "weight": 40, "diagRange": [0.1, 0.4], "revRange": [0.08, 0.32] },
+    "duz": { "label": "düz", "axisW": [1, 1, 0, 0], "rev": 0.2, "weight": 20, "from": 5, "revRange": [0.08, 0.32] },
+    "capraz": { "label": "çapraz ağırlıklı", "axisW": [0.08, 0.08, 1, 1], "rev": 0.2, "weight": 20, "from": 20, "maxP": 0.53, "diagRange": [0.45, 1], "revRange": [0.08, 0.32] },
+    "ters": { "label": "ters ağırlıklı", "axisW": [1, 1, 1, 1], "rev": 0.5, "weight": 20, "from": 7, "diagRange": [0.1, 0.4], "revRange": [0.4, 1] },
+    "yatay": { "label": "yalnız yatay", "axisW": [1, 0, 0, 0], "rev": 0.2, "weight": 0 },
+    "dikey": { "label": "yalnız dikey", "axisW": [0, 1, 0, 0], "rev": 0.2, "weight": 0 }
+  },
+  "roles": {
+    "none": { "label": "rol yok", "sep": 0, "fener": 0, "weight": 35 },
+    "A": { "label": "1 ayrışan", "sep": 1, "fener": 0, "weight": 20, "from": 10 },
+    "F": { "label": "1 fener", "sep": 0, "fener": 1, "weight": 15, "from": 7 },
+    "AA": { "label": "2 ayrışan", "sep": 2, "fener": 0, "weight": 10, "from": 50 },
+    "AF": { "label": "1 ayrışan + 1 fener", "sep": 1, "fener": 1, "weight": 10, "from": 50 },
+    "FF": { "label": "2 fener", "sep": 0, "fener": 2, "weight": 5, "from": 50 },
+    "FFA": { "label": "2 fener + 1 ayrışan", "sep": 1, "fener": 2, "weight": 5, "from": 50 }
+  },
+  "roleRules": { "maxWords": 3, "maxShare": 0.5, "maxRun": 2, "perDecade": [3, 7], "from": 11 },
+  "postPeak": { "recipe": "K4", "low": 0.4, "noDirs": ["capraz"] },
+  "character": { "recipe": "KD", "dirs": ["yatay", "dikey"], "from": 11 },
+  "stack": { "from": 11 },
+  "force": {
+    "5": { "recipe": "K4", "dir": "duz", "rev": 0, "roles": "none", "d2": 5.4 },
+    "6": { "recipe": "O5", "dir": "karisik", "rev": 0, "roles": "none" },
+    "7": { "recipe": "K4", "dir": "ters", "roles": "F", "d2": 5.1 },
+    "8": { "recipe": "K5", "dir": "duz", "roles": "none" },
+    "9": { "recipe": "Z6", "dir": "karisik", "roles": "none", "d2": 9.0 },
+    "10": { "roles": "A" },
+    "20": { "dir": "capraz" },
+    "30": { "recipe": "K3" },
+    "45": { "recipe": "Z7" },
+    "50": { "roles": ["AA", "AF", "FF"] },
+    "62": { "recipe": "O6", "roles": "FFA" }
+  }
+}
